@@ -9,24 +9,19 @@
 </head>
 <body class="bg-gray-100 pb-20">
   <div id="app">
-    <header class="bg-green-600 text-white text-center p-4 font-bold text-lg shadow-md">
-      麻雀成績管理
+    <header class="bg-green-600 text-white text-center p-4 font-bold text-lg shadow-md flex justify-between items-center">
+      <span>麻雀成績管理</span>
+      <!-- ① グループ切り替え -->
+      <select v-if="currentTab !== 'free'" class="bg-green-700 text-white text-sm border-none rounded p-1">
+        <option>会社の麻雀部 (セット)</option>
+        <option>地元の友人 (セット)</option>
+      </select>
     </header>
 
     <main class="p-4">
-      <!-- 🏠 ホーム画面（ダッシュボード） -->
+      <!-- 🏠 ホーム画面 -->
       <div v-show="currentTab === 'home'">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">成績ランキング</h2>
-          <!-- 期間絞り込みフィルター -->
-          <select class="border p-1 rounded text-sm bg-white shadow-sm">
-            <option>全期間</option>
-            <option>2026年</option>
-            <option>2026年10月</option>
-          </select>
-        </div>
-
-        <!-- ランキング表（サンプルデータ） -->
+        <h2 class="text-xl font-bold mb-4">成績ランキング</h2>
         <div class="bg-white rounded-xl shadow overflow-hidden mb-4">
           <table class="w-full text-sm text-center">
             <thead class="bg-gray-200 text-gray-700">
@@ -38,172 +33,142 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="border-b">
-                <td class="py-2 font-bold text-yellow-600">1</td>
-                <td class="py-2">Aさん</td>
-                <td class="py-2 text-green-600 font-bold">+152.0</td>
-                <td class="py-2">2.14</td>
-              </tr>
-              <tr class="border-b">
-                <td class="py-2 font-bold text-gray-400">2</td>
-                <td class="py-2">Cさん</td>
-                <td class="py-2 text-green-600 font-bold">+45.5</td>
-                <td class="py-2">2.35</td>
-              </tr>
-              <tr class="border-b">
-                <td class="py-2 font-bold text-orange-400">3</td>
-                <td class="py-2">Bさん</td>
-                <td class="py-2 text-red-500 font-bold">-24.0</td>
-                <td class="py-2">2.60</td>
-              </tr>
-              <tr>
-                <td class="py-2 font-bold">4</td>
-                <td class="py-2">Dさん</td>
-                <td class="py-2 text-red-500 font-bold">-173.5</td>
-                <td class="py-2">2.91</td>
-              </tr>
+              <tr class="border-b"><td class="py-2 font-bold text-yellow-600">1</td><td class="py-2 text-blue-600 underline">Aさん</td><td class="py-2 text-green-600 font-bold">+152.0</td><td class="py-2">2.14</td></tr>
+              <tr class="border-b"><td class="py-2 font-bold text-gray-400">2</td><td class="py-2 text-blue-600 underline">Cさん</td><td class="py-2 text-green-600 font-bold">+45.5</td><td class="py-2">2.35</td></tr>
             </tbody>
           </table>
-        </div>
-
-        <!-- 役満履歴 -->
-        <h3 class="font-bold text-gray-700 mb-2">🏆 役満殿堂入り</h3>
-        <div class="bg-white p-3 rounded-xl shadow flex items-center gap-3">
-          <span class="text-2xl">🏅</span>
-          <div>
-            <p class="font-bold text-sm">国士無双 (Aさん)</p>
-            <p class="text-xs text-gray-500">2026/09/20</p>
-          </div>
+          <p class="text-xs text-gray-500 text-center p-2">※名前をタップするとトップ率などの詳細が出ます</p>
         </div>
       </div>
 
-      <!-- 👥 セット画面（成績入力） -->
+      <!-- 👥 セット画面 -->
       <div v-show="currentTab === 'set'">
         <h2 class="text-xl font-bold mb-4">セット成績入力</h2>
 
-        <!-- メンバー管理 -->
+        <!-- ③ ルール設定の選択 -->
         <div class="bg-white p-4 rounded-xl shadow mb-4">
-          <h3 class="font-bold text-sm text-gray-700 mb-2">メンバー管理</h3>
-          <div class="flex gap-2 mb-2">
-            <input v-model="newMemberName" type="text" placeholder="新しい名前" class="border p-2 rounded w-full text-sm">
-            <button @click="addMember" class="bg-blue-500 text-white px-4 rounded font-bold text-sm">追加</button>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-3">
-            <span v-for="member in members" :key="member" class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-bold">
-              {{ member }}
-            </span>
-          </div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">適用するルール (ウマ・オカの自動計算)</label>
+          <select class="border p-2 rounded w-full text-sm bg-blue-50">
+            <option>Mリーグルール (10-30 / オカあり)</option>
+            <option>完全順位戦 (10-20-30)</option>
+            <option>点数そのまま (ウマオカなし)</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">※後ほど「設定タブ」で好きなルールを自作できるようにします。</p>
         </div>
 
-        <!-- スコア入力 -->
-        <div class="bg-white p-4 rounded-xl shadow">
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
           <div class="mb-4">
             <label class="block text-sm font-bold text-gray-700 mb-1">対局日</label>
             <input v-model="matchDate" type="date" class="border p-2 rounded w-full">
           </div>
           
-          <h3 class="font-bold text-sm text-gray-700 mb-2">スコア入力（自動着順）</h3>
+          <div class="flex justify-between items-end mb-2 border-b pb-2">
+            <h3 class="font-bold text-sm text-gray-700">結果入力</h3>
+            <select v-model="inputType" @change="calculateRanks" class="border p-1 rounded text-xs bg-gray-50">
+              <option value="score">素点入力 (例: 26000)</option>
+              <option value="point">ポイント入力 (例: +6.0)</option>
+            </select>
+          </div>
+
           <div v-for="(player, index) in currentMatch" :key="index" class="mb-3 flex items-center gap-2">
             <select v-model="player.name" class="border p-2 rounded w-2/5 text-sm">
               <option value="">名前を選択</option>
               <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
             </select>
-            <input v-model.number="player.score" @input="calculateRanks" type="number" placeholder="持ち点" class="border p-2 rounded w-2/5 text-right text-sm">
+            <input v-model.number="player.score" @input="calculateRanks" type="number" inputmode="decimal" :placeholder="inputType === 'score' ? '持ち点' : 'ポイント'" class="border p-2 rounded w-2/5 text-right text-sm">
             <div class="w-1/5 text-center font-bold" :class="{'text-red-500': player.rank === 1}">
               {{ player.rank }}位
             </div>
           </div>
 
-          <!-- 🏆 役満入力エリア -->
-          <div class="mt-4 border-t pt-4">
-            <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-              <input type="checkbox" v-model="hasYakuman" class="w-4 h-4"> 役満が出た場合記録する
-            </label>
-            <div v-if="hasYakuman" class="flex gap-2 bg-yellow-50 p-3 rounded">
-              <select class="border p-2 rounded w-1/2 text-sm">
-                <option value="">和了者</option>
-                <option v-for="p in currentMatch.filter(p => p.name)" :key="p.name">{{ p.name }}</option>
-              </select>
-              <input type="text" placeholder="役満名 (例: 大三元)" class="border p-2 rounded w-1/2 text-sm">
-            </div>
+          <div class="p-2 rounded text-center text-sm font-bold mt-2" :class="isSumValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+            {{ inputType === 'score' ? '合計: ' + totalSum + ' 点' : 'ポイント合計: ' + totalSum }}
+            <span v-if="!isSumValid" class="block text-xs">（数値が合っていません）</span>
           </div>
 
-          <button class="bg-green-600 text-white w-full py-3 rounded-lg font-bold mt-4 shadow">
-            この成績を保存する
+          <button @click="dummySave" class="bg-green-600 text-white w-full py-3 rounded-lg font-bold mt-4 shadow disabled:opacity-50" :disabled="!isSumValid">
+            保存して次の半荘へ
           </button>
         </div>
       </div>
 
       <!-- 👤 フリー画面 -->
       <div v-show="currentTab === 'free'">
-        <h2 class="text-xl font-bold mb-4">フリー麻雀（個人）</h2>
+        <h2 class="text-xl font-bold mb-4">フリー成績入力 (個人用)</h2>
         <div class="bg-white p-4 rounded-xl shadow">
-          <p class="text-gray-600 text-sm">ここに個人の収支入力画面を作ります。他の人には見えません。</p>
+          <div class="mb-3">
+            <label class="block text-sm font-bold text-gray-700 mb-1">日付</label>
+            <input type="date" class="border p-2 rounded w-full">
+          </div>
+          <div class="mb-3">
+            <label class="block text-sm font-bold text-gray-700 mb-1">店舗名 / レート設定</label>
+            <select class="border p-2 rounded w-full text-sm">
+              <option>マーチャオ (テンゴ / 400G)</option>
+              <option>ZOO (テンピン / 600G)</option>
+              <option>新しい店舗・ルールを追加...</option>
+            </select>
+          </div>
+          <div class="mb-3 flex gap-2">
+            <div class="w-1/2">
+              <label class="block text-sm font-bold text-gray-700 mb-1">着順</label>
+              <select class="border p-2 rounded w-full text-sm">
+                <option>1位</option><option>2位</option><option>3位</option><option>4位</option>
+              </select>
+            </div>
+            <div class="w-1/2">
+              <label class="block text-sm font-bold text-gray-700 mb-1">最終収支 (円)</label>
+              <input type="number" placeholder="+3500" class="border p-2 rounded w-full text-sm text-right">
+            </div>
+          </div>
+          <button class="bg-blue-600 text-white w-full py-3 rounded-lg font-bold mt-2 shadow">
+            フリー成績を保存
+          </button>
         </div>
       </div>
     </main>
 
-    <!-- 下部のタブナビゲーション -->
+    <!-- 下部タブ -->
     <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-2 pb-6 shadow-lg">
-      <button @click="currentTab = 'home'" :class="{'text-green-600 font-bold': currentTab === 'home', 'text-gray-400': currentTab !== 'home'}" class="flex flex-col items-center w-1/3">
-        <span class="text-2xl mb-1">🏠</span>
-        <span class="text-[10px]">ホーム</span>
-      </button>
-      <button @click="currentTab = 'set'" :class="{'text-green-600 font-bold': currentTab === 'set', 'text-gray-400': currentTab !== 'set'}" class="flex flex-col items-center w-1/3">
-        <span class="text-2xl mb-1">👥</span>
-        <span class="text-[10px]">セット</span>
-      </button>
-      <button @click="currentTab = 'free'" :class="{'text-green-600 font-bold': currentTab === 'free', 'text-gray-400': currentTab !== 'free'}" class="flex flex-col items-center w-1/3">
-        <span class="text-2xl mb-1">👤</span>
-        <span class="text-[10px]">フリー</span>
-      </button>
+      <button @click="currentTab = 'home'" :class="{'text-green-600 font-bold': currentTab === 'home', 'text-gray-400': currentTab !== 'home'}" class="flex flex-col items-center w-1/3"><span class="text-2xl mb-1">🏠</span><span class="text-[10px]">ホーム</span></button>
+      <button @click="currentTab = 'set'" :class="{'text-green-600 font-bold': currentTab === 'set', 'text-gray-400': currentTab !== 'set'}" class="flex flex-col items-center w-1/3"><span class="text-2xl mb-1">👥</span><span class="text-[10px]">セット</span></button>
+      <button @click="currentTab = 'free'" :class="{'text-green-600 font-bold': currentTab === 'free', 'text-gray-400': currentTab !== 'free'}" class="flex flex-col items-center w-1/3"><span class="text-2xl mb-1">👤</span><span class="text-[10px]">フリー</span></button>
     </nav>
   </div>
 
   <script>
-    const { createApp, ref } = Vue;
+    const { createApp, ref, computed } = Vue;
     createApp({
       setup() {
-        const currentTab = ref('home'); // 最初はホーム（ランキング）を表示
-        
+        const currentTab = ref('set');
         const members = ref(['Aさん', 'Bさん', 'Cさん', 'Dさん']);
-        const newMemberName = ref('');
         const matchDate = ref(new Date().toISOString().slice(0, 10));
-        const hasYakuman = ref(false);
-        
+        const inputType = ref('score'); 
         const currentMatch = ref([
-          { name: '', score: null, rank: '-' },
-          { name: '', score: null, rank: '-' },
-          { name: '', score: null, rank: '-' },
-          { name: '', score: null, rank: '-' }
+          { name: 'Aさん', score: null, rank: '-' },
+          { name: 'Bさん', score: null, rank: '-' },
+          { name: 'Cさん', score: null, rank: '-' },
+          { name: 'Dさん', score: null, rank: '-' }
         ]);
 
-        const addMember = () => {
-          if (newMemberName.value && !members.value.includes(newMemberName.value)) {
-            members.value.push(newMemberName.value);
-            newMemberName.value = '';
-          }
-        };
-
         const calculateRanks = () => {
-          const scores = currentMatch.value
-            .filter(p => p.score !== null && p.score !== '')
-            .map(p => p.score)
-            .sort((a, b) => b - a);
-
+          const scores = currentMatch.value.filter(p => p.score !== null && p.score !== '').map(p => p.score).sort((a, b) => b - a);
           currentMatch.value.forEach(p => {
-            if (p.score !== null && p.score !== '') {
-              p.rank = scores.indexOf(p.score) + 1;
-            } else {
-              p.rank = '-';
-            }
+            if (p.score !== null && p.score !== '') p.rank = scores.indexOf(p.score) + 1;
+            else p.rank = '-';
           });
         };
 
-        return { 
-          currentTab, members, newMemberName, matchDate, currentMatch, hasYakuman,
-          addMember, calculateRanks 
+        const totalSum = computed(() => currentMatch.value.reduce((sum, p) => sum + (Number(p.score) || 0), 0));
+        const isSumValid = computed(() => inputType.value === 'score' ? totalSum.value === 100000 : (totalSum.value === 0 && currentMatch.value.some(p => p.score !== null)));
+
+        const dummySave = () => {
+          if(isSumValid.value) {
+            alert('成績を保存しました！(※現在はテスト版のため画面がクリアされるだけです)');
+            currentMatch.value.forEach(p => { p.score = null; p.rank = '-'; });
+          }
         };
+
+        return { currentTab, members, matchDate, currentMatch, inputType, calculateRanks, totalSum, isSumValid, dummySave };
       }
     }).mount('#app');
   </script>
