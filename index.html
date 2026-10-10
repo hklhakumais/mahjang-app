@@ -8,207 +8,77 @@
 </head>
 <body class="bg-gray-100 pb-20 font-sans">
   <div id="app" v-cloak>
-    <header class="bg-green-700 text-white p-4 font-bold text-lg shadow-md flex justify-between items-center">
-      <span>麻雀成績管理</span>
-      <!-- グループ切り替え -->
-      <select v-if="currentTab === 'set'" class="bg-green-800 text-white text-xs border-none rounded p-1">
-        <option>会社の麻雀部</option>
-        <option>地元の友人</option>
-      </select>
-    </header>
-
-    <main class="p-4">
-      <!-- 🏠 ホーム（個人ダッシュボード） -->
-      <div v-show="currentTab === 'home'">
-        <h2 class="text-xl font-bold mb-4">マイページ（個人成績）</h2>
-        <div class="bg-white p-4 rounded-xl shadow mb-4">
-          <p class="text-gray-600 text-sm mb-2">セットとフリーを合算した、あなた自身の総合データです。</p>
-          <div class="grid grid-cols-2 gap-4 text-center">
-            <div class="bg-blue-50 p-3 rounded">
-              <p class="text-xs text-gray-500">通算ポイント</p>
-              <p class="text-xl font-bold text-blue-600">+254.0</p>
-            </div>
-            <div class="bg-red-50 p-3 rounded">
-              <p class="text-xs text-gray-500">平均着順</p>
-              <p class="text-xl font-bold text-red-600">2.34</p>
-            </div>
-            <div class="bg-green-50 p-3 rounded">
-              <p class="text-xs text-gray-500">和了率</p>
-              <p class="text-xl font-bold text-green-600">22.5%</p>
-            </div>
-            <div class="bg-yellow-50 p-3 rounded">
-              <p class="text-xs text-gray-500">放銃率</p>
-              <p class="text-xl font-bold text-yellow-600">11.2%</p>
-            </div>
-          </div>
-        </div>
+    
+    <!-- 🔒 ログイン画面（ログインしていない時に表示） -->
+    <div v-if="!user" class="h-screen flex flex-col items-center justify-center p-4 bg-green-50">
+      <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm">
+        <div class="text-5xl mb-4">🀄️</div>
+        <h1 class="text-2xl font-bold text-green-700 mb-2">麻雀成績管理</h1>
+        <p class="text-sm text-gray-500 mb-8">セットの記録や個人のフリー成績を<br>クラウドで安全に管理します。</p>
+        <button @click="login" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition flex items-center justify-center gap-2">
+          <span>Googleでログインして始める</span>
+        </button>
       </div>
+    </div>
 
-      <!-- 👥 セット画面（サブタブで画面を分割） -->
-      <div v-show="currentTab === 'set'">
-        <!-- サブナビゲーション -->
-        <div class="flex bg-white rounded-t-xl shadow-sm border-b">
-          <button @click="setTab = 'input'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'input' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">入力</button>
-          <button @click="setTab = 'ranking'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'ranking' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">成績表</button>
-          <button @click="setTab = 'history'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'history' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">履歴</button>
-          <button @click="setTab = 'settings'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'settings' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">設定</button>
+    <!-- 📱 メインアプリ画面（ログインしている時に表示） -->
+    <div v-else>
+      <header class="bg-green-700 text-white p-4 font-bold text-lg shadow-md flex justify-between items-center">
+        <span>麻雀成績管理</span>
+        <!-- ユーザー情報とログアウトボタン -->
+        <div class="flex items-center gap-2">
+          <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-green-500">
+          <button @click="logout" class="text-[10px] bg-green-800 hover:bg-green-900 px-2 py-1 rounded">ログアウト</button>
+        </div>
+      </header>
+
+      <main class="p-4">
+        <!-- 🏠 ホーム（個人ダッシュボード） -->
+        <div v-show="currentTab === 'home'">
+          <h2 class="text-xl font-bold mb-4">マイページ</h2>
+          <div class="bg-white p-4 rounded-xl shadow mb-4">
+            <p class="text-gray-800 font-bold mb-2">ようこそ、{{ user.displayName }} さん！</p>
+            <p class="text-gray-600 text-sm mb-4">ここはあなた専用のダッシュボードです。</p>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div class="bg-blue-50 p-3 rounded">
+                <p class="text-xs text-gray-500">通算ポイント</p>
+                <p class="text-xl font-bold text-blue-600">---</p>
+              </div>
+              <div class="bg-red-50 p-3 rounded">
+                <p class="text-xs text-gray-500">平均着順</p>
+                <p class="text-xl font-bold text-red-600">-.-</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="bg-white p-4 rounded-b-xl shadow mb-4">
-          
-          <!-- 1. 入力タブ -->
-          <div v-show="setTab === 'input'">
-            <div class="flex gap-2 mb-4">
-              <div class="w-1/2">
-                <label class="block text-xs font-bold text-gray-500 mb-1">対局日</label>
-                <input v-model="matchDate" type="date" class="border p-2 rounded w-full text-sm">
-              </div>
-              <div class="w-1/2">
-                <label class="block text-xs font-bold text-gray-500 mb-1">ルール</label>
-                <select class="border p-2 rounded w-full text-sm bg-gray-50">
-                  <option>Mリーグ (10-30/オカ)</option>
-                  <option>天鳳 (-195まで)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-end mb-2 border-b pb-1">
-              <h3 class="font-bold text-sm">スコア入力</h3>
-              <select v-model="inputType" @change="calculateRanks" class="border p-1 rounded text-xs bg-gray-50">
-                <option value="score">素点 (例: 26000)</option>
-                <option value="point">pt (マイナス可)</option>
-              </select>
-            </div>
-
-            <!-- スコア入力ループ -->
-            <div v-for="(player, index) in currentMatch" :key="index" class="mb-3">
-              <div class="flex items-center gap-2">
-                <select v-model="player.name" class="border p-2 rounded w-2/5 text-sm">
-                  <option value="">名前選択</option>
-                  <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
-                </select>
-                <input v-model.number="player.score" @input="calculateRanks" type="number" inputmode="decimal" :placeholder="inputType === 'score' ? '持ち点' : 'pt'" class="border p-2 rounded w-2/5 text-right text-sm">
-                <div class="w-1/5 text-center font-bold text-sm" :class="{'text-red-500': player.rank === 1}">{{ player.rank }}位</div>
-              </div>
-              <!-- 詳細データ入力（トグルで表示） -->
-              <div v-if="showDetailInput && player.name" class="flex gap-2 mt-1 pl-2 bg-gray-50 p-2 rounded border border-gray-100">
-                <input v-model.number="player.agari" type="number" placeholder="和了回数" class="border p-1 rounded w-1/2 text-xs text-center">
-                <input v-model.number="player.hoju" type="number" placeholder="放銃回数" class="border p-1 rounded w-1/2 text-xs text-center">
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center mt-2">
-              <label class="text-xs text-gray-500 flex items-center gap-1">
-                <input type="checkbox" v-model="showDetailInput"> 和了・放銃回数も入力する
-              </label>
-              <div v-if="showDetailInput" class="flex items-center gap-1">
-                <span class="text-xs text-gray-500">総局数:</span>
-                <input v-model.number="totalKyoku" type="number" class="border p-1 rounded w-12 text-xs text-center">
-              </div>
-            </div>
-
-            <!-- 合計チェック -->
-            <div class="p-2 rounded text-center text-sm font-bold mt-3" :class="isSumValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-              {{ inputType === 'score' ? '合計: ' + totalSum + ' 点' : 'pt合計: ' + totalSum }}
-              <span v-if="!isSumValid" class="block text-[10px]">数値を合わせてください</span>
-            </div>
-
-            <button @click="saveToCloud" class="bg-green-600 text-white w-full py-3 rounded-lg font-bold mt-4 shadow disabled:opacity-50" :disabled="!isSumValid">
-              成績を保存する
-            </button>
+        <!-- 👥 セット画面 -->
+        <div v-show="currentTab === 'set'">
+          <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-xl mb-4 text-xs">
+            <p class="font-bold">【今後のアップデート予定】</p>
+            <p>ここに「合言葉（グループID）」を入力して、特定のメンバーだけで成績を共有する機能を実装します。</p>
           </div>
-
-          <!-- 2. 成績表・ランキングタブ -->
-          <div v-show="setTab === 'ranking'">
-            <h3 class="font-bold text-sm mb-2 flex justify-between">
-              <span>総合ランキング</span>
-              <button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">⬇ CSVダウンロード</button>
-            </h3>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-center whitespace-nowrap">
-                <thead class="bg-gray-100 text-gray-600 text-xs">
-                  <tr>
-                    <th class="p-2">名前</th>
-                    <th class="p-2">総合pt</th>
-                    <th class="p-2">トップ率</th>
-                    <th class="p-2">ラス回避</th>
-                    <th class="p-2">平均順位</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- クラウドから集計したデータ（とりあえずモック） -->
-                  <tr class="border-b" v-for="n in 3" :key="n">
-                    <td class="p-2 text-blue-600 underline" @click="alert('ここに個人詳細がポップアップします')">プレイヤー{{n}}</td>
-                    <td class="p-2 font-bold" :class="n==1?'text-green-600':'text-red-500'">{{ 100 - n*30 }}.0</td>
-                    <td class="p-2">{{ 40 - n*5 }}%</td>
-                    <td class="p-2">{{ 90 - n*5 }}%</td>
-                    <td class="p-2">{{ 2.1 + n*0.2 }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            <h3 class="font-bold text-sm mt-6 mb-2 border-t pt-4">🏆 役満履歴</h3>
-            <p class="text-xs text-gray-500">入力画面から役満を記録するとここに表示されます。</p>
+          <div class="bg-white p-4 rounded-xl shadow text-center">
+            <p class="text-sm text-gray-500">（※ここには前回までのセット入力画面が入ります。今回はログイン機能のテストのため一時的に隠しています）</p>
           </div>
-
-          <!-- 3. 履歴タブ（削除・編集） -->
-          <div v-show="setTab === 'history'">
-            <h3 class="font-bold text-sm mb-3">対局履歴</h3>
-            <p v-if="history.length === 0" class="text-xs text-gray-500 text-center py-4">データがありません</p>
-            
-            <!-- クラウドから取得した履歴リスト -->
-            <div v-for="match in history" :key="match.id" class="border rounded p-3 mb-2 bg-gray-50 relative">
-              <div class="flex justify-between text-xs text-gray-500 border-b pb-1 mb-2">
-                <span>{{ match.date }}</span>
-                <!-- 削除ボタン -->
-                <button @click="deleteMatch(match.id)" class="text-red-500 bg-red-100 px-2 py-0.5 rounded">削除</button>
-              </div>
-              <div class="grid grid-cols-2 gap-2 text-sm">
-                <div v-for="p in match.players" :key="p.name" class="flex justify-between">
-                  <span>{{ p.name }} ({{ p.rank }}位)</span>
-                  <span class="font-bold" :class="p.score > 0 ? 'text-green-600' : 'text-red-500'">{{ p.score }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. 設定・メンバータブ -->
-          <div v-show="setTab === 'settings'">
-            <h3 class="font-bold text-sm mb-2">メンバー管理</h3>
-            <div class="flex gap-2 mb-3">
-              <input v-model="newMemberName" type="text" placeholder="名前" class="border p-2 rounded w-full text-sm">
-              <button @click="addMember" class="bg-blue-500 text-white px-4 rounded text-sm">追加</button>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-6">
-              <span v-for="member in members" :key="member" class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs flex items-center gap-1">
-                {{ member }}
-                <button @click="removeMember(member)" class="text-red-500 hover:bg-red-200 rounded-full w-4 h-4 text-center leading-none">×</button>
-              </span>
-            </div>
-
-            <h3 class="font-bold text-sm mb-2 border-t pt-4">ルール設定テンプレート（準備中）</h3>
-            <p class="text-xs text-gray-500">ここでウマ・オカ・飛び賞などのカスタムルールを作成し、入力画面で呼び出せるようにします。</p>
-          </div>
-
         </div>
-      </div>
 
-      <!-- 👤 フリー画面 -->
-      <div v-show="currentTab === 'free'">
-        <h2 class="text-xl font-bold mb-4">フリー成績入力</h2>
-        <div class="bg-white p-4 rounded-xl shadow">
-          <p class="text-sm text-gray-600">レート、ゲーム代、店舗名を記録できるフリー専用ページをここに作ります。</p>
+        <!-- 👤 フリー画面 -->
+        <div v-show="currentTab === 'free'">
+          <h2 class="text-xl font-bold mb-4">フリー成績入力</h2>
+          <div class="bg-white p-4 rounded-xl shadow text-center">
+            <p class="text-sm text-gray-500">（※あなた専用の非公開フォルダに保存されるようになります）</p>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
 
-    <!-- 下部タブ -->
-    <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-2 pb-6 shadow-lg">
-      <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">🏠</span><span class="text-[10px] font-bold">ホーム</span></button>
-      <button @click="currentTab = 'set'" :class="currentTab === 'set' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👥</span><span class="text-[10px] font-bold">セット</span></button>
-      <button @click="currentTab = 'free'" :class="currentTab === 'free' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👤</span><span class="text-[10px] font-bold">フリー</span></button>
-    </nav>
+      <!-- 下部タブ -->
+      <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-2 pb-6 shadow-lg">
+        <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">🏠</span><span class="text-[10px] font-bold">ホーム</span></button>
+        <button @click="currentTab = 'set'" :class="currentTab === 'set' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👥</span><span class="text-[10px] font-bold">セット</span></button>
+        <button @click="currentTab = 'free'" :class="currentTab === 'free' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👤</span><span class="text-[10px] font-bold">フリー</span></button>
+      </nav>
+    </div>
   </div>
 
   <style>
@@ -217,10 +87,11 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-    // Firebase設定（ご自身の鍵）
+    // 組み込み済みのFirebase設定
     const firebaseConfig = {
       apiKey: "AIzaSyDVhqc0taaYIAdjN89Flp5jXXgk3MjNUAA",
       authDomain: "mahjang-app.firebaseapp.com",
@@ -232,83 +103,34 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
     
     createApp({
       setup() {
-        const currentTab = ref('set');
-        const setTab = ref('input'); // セット画面内のサブタブ
-        
-        const members = ref(['Aさん', 'Bさん', 'Cさん', 'Dさん']); 
-        const newMemberName = ref('');
-        const addMember = () => { if (newMemberName.value) members.value.push(newMemberName.value); newMemberName.value = ''; };
-        const removeMember = (name) => { members.value = members.value.filter(m => m !== name); };
+        const currentTab = ref('home');
+        const user = ref(null);
 
-        const matchDate = ref(new Date().toISOString().slice(0, 10));
-        const inputType = ref('score'); 
-        const showDetailInput = ref(false);
-        const totalKyoku = ref(null);
-        
-        const currentMatch = ref([
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null }
-        ]);
-
-        const history = ref([]); // クラウドからのデータ保存用
-
-        const calculateRanks = () => {
-          const scores = currentMatch.value.filter(p => p.score !== null && p.score !== '').map(p => p.score).sort((a, b) => b - a);
-          currentMatch.value.forEach(p => {
-            if (p.score !== null && p.score !== '') p.rank = scores.indexOf(p.score) + 1;
-            else p.rank = '-';
-          });
-        };
-
-        const totalSum = computed(() => currentMatch.value.reduce((sum, p) => sum + (Number(p.score) || 0), 0));
-        const isSumValid = computed(() => inputType.value === 'score' ? totalSum.value === 100000 : (totalSum.value === 0 && currentMatch.value.some(p => p.score !== null)));
-
-        // データの保存
-        const saveToCloud = async () => {
-          if(!isSumValid.value) return;
-          try {
-            await addDoc(collection(db, "matches"), {
-              date: matchDate.value,
-              type: inputType.value,
-              kyoku: totalKyoku.value,
-              players: currentMatch.value.filter(p => p.name).map(p => ({
-                name: p.name, score: p.score, rank: p.rank, agari: p.agari, hoju: p.hoju
-              })),
-              createdAt: new Date()
-            });
-            alert('成績を保存しました！');
-            // 名前は残して数値だけリセット
-            currentMatch.value.forEach(p => { p.score = null; p.rank = '-'; p.agari = null; p.hoju = null; });
-            totalKyoku.value = null;
-          } catch (error) {
-            alert('保存エラー: ' + error.message);
-          }
-        };
-
-        // データの削除
-        const deleteMatch = async (id) => {
-          if(confirm('この対局データを削除します。よろしいですか？（ランキング等の集計からも消えます）')) {
-            await deleteDoc(doc(db, "matches", id));
-          }
-        };
-
-        // 起動時にクラウドから履歴をリアルタイム取得
         onMounted(() => {
-          const q = query(collection(db, "matches"), orderBy("createdAt", "desc"));
-          onSnapshot(q, (snapshot) => {
-            history.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          onAuthStateChanged(auth, (currentUser) => {
+            user.value = currentUser;
           });
         });
 
+        const login = () => {
+          signInWithPopup(auth, provider).catch((error) => {
+            alert('ログインに失敗しました: ' + error.message);
+          });
+        };
+
+        const logout = () => {
+          if(confirm('ログアウトしますか？')) {
+            signOut(auth);
+          }
+        };
+
         return { 
-          currentTab, setTab, members, newMemberName, addMember, removeMember,
-          matchDate, currentMatch, inputType, showDetailInput, totalKyoku,
-          calculateRanks, totalSum, isSumValid, saveToCloud, history, deleteMatch
+          currentTab, user, login, logout
         };
       }
     }).mount('#app');
