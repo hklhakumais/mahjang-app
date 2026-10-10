@@ -5,239 +5,328 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>麻雀成績管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .select-none { -webkit-user-select: none; user-select: none; }
+    input, select { -webkit-user-select: auto; user-select: auto; font-size: 16px; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    [v-cloak] { display: none; }
+  </style>
 </head>
-<body class="bg-gray-100 pb-20 font-sans">
+<body class="bg-gray-50 text-gray-900 pb-[env(safe-area-inset-bottom)]">
   <div id="app" v-cloak>
     
     <!-- 🔒 ログイン画面 -->
-    <div v-if="!user" class="h-screen flex flex-col items-center justify-center p-4 bg-green-50">
-      <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm">
+    <div v-if="!user" class="h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+      <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm border border-gray-100">
         <div class="text-5xl mb-4">🀄️</div>
-        <h1 class="text-2xl font-bold text-green-700 mb-2">麻雀成績管理</h1>
-        <p class="text-sm text-gray-500 mb-8">セットの記録や個人のフリー成績を<br>クラウドで安全に管理します。</p>
-        <button @click="login" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition flex items-center justify-center gap-2">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">麻雀成績 Tracker</h1>
+        <p class="text-sm text-gray-500 mb-8">以前の使いやすさはそのままに。<br>クラウドで安全にデータを管理します。</p>
+        <button @click="login" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
           <span>Googleでログインして始める</span>
         </button>
       </div>
     </div>
 
     <!-- 📱 メインアプリ画面 -->
-    <div v-else>
-      <header class="bg-green-700 text-white p-4 font-bold text-lg shadow-md flex justify-between items-center">
-        <span>麻雀成績管理</span>
-        <div class="flex items-center gap-2">
-          <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-green-500">
-          <button @click="logout" class="text-[10px] bg-green-800 hover:bg-green-900 px-2 py-1 rounded">ログアウト</button>
+    <div v-else class="min-h-screen relative">
+      
+      <!-- ヘッダー（旧アプリのデザインを踏襲） -->
+      <header class="bg-white shadow-sm sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 class="text-lg font-bold text-gray-800 select-none">🀄️ 麻雀成績 Tracker</h1>
+          <div class="flex items-center gap-2">
+            <img v-if="user.photoURL" :src="user.photoURL" class="w-7 h-7 rounded-full border border-gray-200">
+            <button @click="logout" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded">ログアウト</button>
+          </div>
+        </div>
+        <!-- タブナビゲーション -->
+        <div class="flex border-t border-gray-100 max-w-md mx-auto select-none overflow-x-auto hide-scrollbar bg-white">
+          <button @click="activeTab = 'record'" :class="activeTab === 'record' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-400'" class="flex-1 min-w-[70px] py-3 text-[11px] font-bold text-center transition-colors">対局入力</button>
+          <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-400'" class="flex-1 min-w-[70px] py-3 text-[11px] font-bold text-center transition-colors">成績分析</button>
+          <button @click="activeTab = 'group'" :class="activeTab === 'group' ? 'border-b-2 border-orange-500 text-orange-600' : 'text-gray-400'" class="flex-1 min-w-[70px] py-3 text-[11px] font-bold text-center transition-colors">セット共有</button>
         </div>
       </header>
 
-      <main class="p-4">
-        <!-- 🏠 ホーム（個人ダッシュボード） -->
-        <div v-show="currentTab === 'home'">
-          <h2 class="text-xl font-bold mb-4">マイページ</h2>
-          <div class="bg-white p-4 rounded-xl shadow mb-4">
-            <p class="text-gray-800 font-bold mb-2">ようこそ、{{ user.displayName }} さん！</p>
-            <p class="text-gray-600 text-sm mb-4">ここはあなた専用のダッシュボードです。セットとフリーの合算成績がここに表示されます。</p>
-            <div class="grid grid-cols-2 gap-4 text-center">
-              <div class="bg-blue-50 p-3 rounded">
-                <p class="text-xs text-gray-500">通算ポイント</p>
-                <p class="text-xl font-bold text-blue-600">---</p>
+      <main class="max-w-md mx-auto p-4 space-y-4 pb-24">
+        
+        <!-- ========================================== -->
+        <!-- 📝 1. 対局入力タブ（旧アプリを完全再現＋編集機能） -->
+        <!-- ========================================== -->
+        <div v-show="activeTab === 'record'" class="space-y-4">
+          <div class="bg-white rounded-2xl shadow-sm p-5 space-y-6 border border-gray-100">
+            
+            <!-- ルール選択 -->
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">ルール・店舗</label>
+              <select v-model="selectedRule" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none font-medium text-gray-700">
+                <option v-for="rule in rules" :key="rule.name" :value="rule.name">{{ rule.name }}</option>
+              </select>
+            </div>
+
+            <!-- カウンター -->
+            <div>
+              <h2 class="text-xs font-bold text-gray-400 mb-2 uppercase">進行状況 (タップで+1)</h2>
+              <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                <span class="text-gray-700 font-medium w-24 select-none">局数</span>
+                <div class="flex items-center space-x-4">
+                  <button @click="totalRounds = Math.max(0, totalRounds - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold hover:bg-gray-200 active:bg-gray-300 transition select-none">-</button>
+                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ totalRounds }}</span>
+                  <button @click="totalRounds++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold hover:bg-blue-600 active:bg-blue-700 transition shadow-sm select-none">+</button>
+                </div>
               </div>
-              <div class="bg-red-50 p-3 rounded">
-                <p class="text-xs text-gray-500">平均着順</p>
-                <p class="text-xl font-bold text-red-600">-.-</p>
+              <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                <span class="text-gray-700 font-medium w-24 select-none">リーチ</span>
+                <div class="flex items-center space-x-4">
+                  <button @click="riichis = Math.max(0, riichis - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold hover:bg-gray-200">-</button>
+                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ riichis }}</span>
+                  <button @click="riichis++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold hover:bg-blue-600">+</button>
+                </div>
               </div>
-              <div class="bg-green-50 p-3 rounded">
-                <p class="text-xs text-gray-500">和了率</p>
-                <p class="text-xl font-bold text-green-600">--.-%</p>
+              <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                <span class="text-gray-700 font-medium w-24 select-none">副露</span>
+                <div class="flex items-center space-x-4">
+                  <button @click="calls = Math.max(0, calls - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold hover:bg-gray-200">-</button>
+                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ calls }}</span>
+                  <button @click="calls++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold hover:bg-blue-600">+</button>
+                </div>
               </div>
-              <div class="bg-yellow-50 p-3 rounded">
-                <p class="text-xs text-gray-500">放銃率</p>
-                <p class="text-xl font-bold text-yellow-600">--.-%</p>
+            </div>
+
+            <!-- 和了・放銃入力 -->
+            <div>
+              <h2 class="text-xs font-bold text-gray-400 mb-3 uppercase">和了・放銃 (点数をタップ)</h2>
+              
+              <!-- 和了 (Win) -->
+              <div class="bg-blue-50 rounded-xl p-3 mb-3 border border-blue-100 relative">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-bold text-blue-800 text-sm">和了 (計 {{ winCount }}回)</span>
+                  <span class="text-xs text-blue-600 font-bold">合計: {{ winPointsTotal.toLocaleString() }}点</span>
+                </div>
+                <!-- ★進化ポイント：入力履歴と削除（編集）機能 -->
+                <div v-if="winLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-blue-100">
+                  <span v-for="log in winLogs" :key="log.id" class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                    {{ log.points }}点 <button @click="removeLog(log.id)" class="text-blue-500 hover:text-blue-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
+                  </span>
+                </div>
+                <div class="text-[10px] font-bold text-blue-500 mb-1 ml-1">【子】</div>
+                <div class="grid grid-cols-4 gap-1.5 mb-2">
+                  <button v-for="p in koPoints" :key="'w-k'+p" @click="addLog('win', p)" class="px-1 py-2.5 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-black shadow-sm active:bg-blue-100">{{ p }}</button>
+                </div>
+                <div class="border-t border-dashed border-blue-200 my-2 mx-1"></div>
+                <div class="text-[10px] font-bold text-blue-500 mb-1 ml-1">【親】</div>
+                <div class="grid grid-cols-4 gap-1.5">
+                  <button v-for="p in oyaPoints" :key="'w-o'+p" @click="addLog('win', p)" class="px-1 py-2.5 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-black shadow-sm active:bg-blue-100">{{ p }}</button>
+                </div>
+              </div>
+
+              <!-- 放銃 (Deal-in) -->
+              <div class="bg-red-50 rounded-xl p-3 border border-red-100 relative">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-bold text-red-800 text-sm">放銃 (計 {{ dealInCount }}回)</span>
+                  <span class="text-xs text-red-600 font-bold">合計: {{ dealInPointsTotal.toLocaleString() }}点</span>
+                </div>
+                <!-- ★進化ポイント：入力履歴と削除（編集）機能 -->
+                <div v-if="dealInLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-red-100">
+                  <span v-for="log in dealInLogs" :key="log.id" class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                    {{ log.points }}点 <button @click="removeLog(log.id)" class="text-red-500 hover:text-red-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
+                  </span>
+                </div>
+                <div class="text-[10px] font-bold text-red-500 mb-1 ml-1">【子への放銃】</div>
+                <div class="grid grid-cols-4 gap-1.5 mb-2">
+                  <button v-for="p in koPoints" :key="'d-k'+p" @click="addLog('dealIn', p)" class="px-1 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-black shadow-sm active:bg-red-100">{{ p }}</button>
+                </div>
+                <div class="border-t border-dashed border-red-200 my-2 mx-1"></div>
+                <div class="text-[10px] font-bold text-red-500 mb-1 ml-1">【親への放銃】</div>
+                <div class="grid grid-cols-4 gap-1.5">
+                  <button v-for="p in oyaPoints" :key="'d-o'+p" @click="addLog('dealIn', p)" class="px-1 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-black shadow-sm active:bg-red-100">{{ p }}</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 着順・スコア入力 -->
+            <div class="pt-4 border-t border-gray-100">
+              <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">半荘終了時の入力</h2>
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">着順</label>
+                  <select v-model.number="rank" class="w-full px-3 py-3 rounded-lg border border-gray-300 outline-none bg-white font-medium text-lg">
+                    <option value="1">1着</option><option value="2">2着</option><option value="3">3着</option><option value="4">4着</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">スコア (pt)</label>
+                  <div class="flex rounded-lg border border-gray-300 overflow-hidden bg-white">
+                    <button type="button" @click="scoreSign = scoreSign * -1" :class="scoreSign > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-600'" class="px-3 py-3 font-bold text-lg">{{ scoreSign > 0 ? '+' : '−' }}</button>
+                    <input v-model="tempScoreBalance" type="number" step="0.1" placeholder="例: 53.2" class="w-full px-2 py-3 outline-none text-lg bg-transparent">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 保存ボタン（セットとフリーをシームレスに振り分け） -->
+              <div class="space-y-2 mt-6">
+                <button @click="saveGame('private')" class="w-full py-3.5 text-white text-base font-bold rounded-xl shadow-md bg-blue-500 hover:bg-blue-600 active:bg-blue-700 flex justify-center items-center gap-2">
+                  <span>👤 個人のフリー成績として保存</span>
+                </button>
+                <button v-if="currentGroupId" @click="saveGame('group')" class="w-full py-3.5 text-white text-base font-bold rounded-xl shadow-md bg-orange-500 hover:bg-orange-600 active:bg-orange-700 flex justify-center items-center gap-2">
+                  <span>👥 セット [{{ currentGroupId }}] に保存</span>
+                </button>
+                <p v-else class="text-center text-[10px] text-gray-400 mt-2">※セットグループに保存するには、「セット共有」タブから合言葉を入力して入室してください。</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 👥 セット画面 -->
-        <div v-show="currentTab === 'set'">
+        <!-- ========================================== -->
+        <!-- 📊 2. 成績分析タブ（旧アプリのスタッツを完全再現） -->
+        <!-- ========================================== -->
+        <div v-show="activeTab === 'stats'" class="space-y-4">
           
-          <!-- 🔑 グループ未参加の場合の合言葉入力画面 -->
-          <div v-if="!currentGroupId" class="bg-white p-6 rounded-xl shadow text-center">
-            <h3 class="font-bold text-lg mb-2">セットグループに参加</h3>
-            <p class="text-xs text-gray-500 mb-4">仲間と共有している「合言葉（グループID）」を入力するか、新しい合言葉を作ってグループを作成してください。</p>
-            <input v-model="groupInput" type="text" placeholder="例: amagasaki-mj-2026" class="border-2 border-green-200 p-3 rounded-lg w-full mb-4 text-center font-bold">
-            <button @click="joinGroup" class="bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow w-full">
-              この合言葉で入室・作成する
+          <!-- フィルター -->
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col space-y-3">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm font-bold text-gray-500 w-16 text-right">表示対象:</span>
+              <select v-model="filterType" class="flex-1 py-2 px-3 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm font-medium">
+                <option value="all">すべての成績（個人＋セット）</option>
+                <option value="private">個人のフリー成績のみ</option>
+                <option v-if="currentGroupId" value="group">現在のセット [{{ currentGroupId }}] のみ</option>
+              </select>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-sm font-bold text-gray-500 w-16 text-right">ルール:</span>
+              <select v-model="filterRule" class="flex-1 py-2 px-3 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm font-medium">
+                <option value="全て">全てのルール</option>
+                <option v-for="rule in rules" :key="rule.name" :value="rule.name">{{ rule.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div v-if="filteredHistory.length === 0" class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500 font-medium border border-gray-100">
+            表示するデータがありません。<br><span class="text-xs">対局入力から成績を保存してください。</span>
+          </div>
+
+          <div v-else class="space-y-4">
+            <!-- 概要 -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div class="text-xs text-gray-500 font-medium mb-1">半荘数 / 総局数</div>
+                <div class="text-2xl font-black text-gray-800">{{ stats.hanchan }}<span class="text-sm font-normal text-gray-500 ml-1">半荘</span> / {{ stats.rounds }}<span class="text-sm font-normal text-gray-500 ml-1">局</span></div>
+              </div>
+              <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div class="text-xs text-gray-500 font-medium mb-1">累計スコア (pt)</div>
+                <div class="text-2xl font-black" :class="stats.score >= 0 ? 'text-green-600' : 'text-red-600'">{{ stats.score > 0 ? '+' : '' }}{{ stats.score.toFixed(1) }}</div>
+              </div>
+            </div>
+
+            <!-- 詳細スタッツ -->
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 space-y-4">
+              <h3 class="font-bold text-gray-800 border-b pb-2">主要スタッツ</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">和了率</div>
+                  <div class="text-xl font-bold text-blue-600">{{ stats.winRate.toFixed(2) }}%</div>
+                  <div class="text-[10px] text-gray-400 mt-1">平均打点: {{ Math.round(stats.avgWinPoints).toLocaleString() }}点</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">放銃率</div>
+                  <div class="text-xl font-bold text-red-600">{{ stats.dealInRate.toFixed(2) }}%</div>
+                  <div class="text-[10px] text-gray-400 mt-1">平均失点: {{ Math.round(stats.avgDealInPoints).toLocaleString() }}点</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-3 border-t border-gray-50">
+                <div><div class="text-xs text-gray-500 mb-1">リーチ率</div><div class="text-lg font-bold text-gray-700">{{ stats.riichiRate.toFixed(2) }}%</div></div>
+                <div><div class="text-xs text-gray-500 mb-1">副露率</div><div class="text-lg font-bold text-gray-700">{{ stats.callRate.toFixed(2) }}%</div></div>
+              </div>
+            </div>
+
+            <!-- 着順分布 -->
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+              <div class="flex justify-between items-end mb-4 border-b pb-2">
+                <h3 class="font-bold text-gray-800">着順分布</h3>
+                <span class="text-sm font-medium text-gray-500">平均着順: {{ stats.avgRank.toFixed(2) }}</span>
+              </div>
+              <div class="space-y-3">
+                <div v-for="rank in [1,2,3,4]" :key="rank" class="flex items-center space-x-3">
+                  <span class="text-sm font-bold text-gray-700 w-8">{{ rank }}着</span>
+                  <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden flex">
+                    <div class="h-full transition-all duration-500" :class="rank === 1 ? 'bg-yellow-400' : rank === 2 ? 'bg-gray-400' : rank === 3 ? 'bg-orange-400' : 'bg-gray-700'" :style="{ width: stats.ranks[rank].percent + '%' }"></div>
+                  </div>
+                  <div class="w-16 text-right"><span class="text-xs font-bold text-gray-600">{{ stats.ranks[rank].count }}回</span><span class="text-[10px] text-gray-400 ml-1">({{ stats.ranks[rank].percent.toFixed(0) }}%)</span></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 履歴リスト -->
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+              <h3 class="font-bold text-gray-800 border-b pb-2 mb-3">対局履歴</h3>
+              <div class="space-y-3">
+                <div v-for="record in filteredHistory" :key="record.id" class="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 relative">
+                  <div>
+                    <div class="text-[10px] text-gray-400 flex items-center space-x-2 mb-1">
+                      <span>{{ record.date }}</span>
+                      <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{ record.rule }}</span>
+                      <span v-if="record.groupId" class="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold">セット</span>
+                      <span v-else class="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold">フリー</span>
+                    </div>
+                    <div class="font-medium flex items-center">
+                      <span class="inline-block w-6 text-center rounded-sm mr-2 text-xs font-bold" :class="record.rank === 1 ? 'bg-yellow-100 text-yellow-800' : record.rank === 4 ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600'">{{ record.rank }}</span>
+                      <span class="text-sm font-bold" :class="record.scoreBalance >= 0 ? 'text-green-600' : 'text-red-500'">{{ record.scoreBalance > 0 ? '+' : '' }}{{ record.scoreBalance }} pt</span>
+                    </div>
+                  </div>
+                  <div class="text-right flex flex-col items-end">
+                    <div class="text-[10px] text-gray-500 mb-1">{{ record.totalRounds }}局 (和{{ record.wins }} 放{{ record.dealIns }})</div>
+                    <button @click="deleteRecord(record.id)" class="text-[10px] px-3 py-1 bg-red-50 text-red-600 rounded font-bold">削除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 👥 3. セット共有タブ（新機能） -->
+        <!-- ========================================== -->
+        <div v-show="activeTab === 'group'" class="space-y-4">
+          <div v-if="!currentGroupId" class="bg-white p-6 rounded-2xl shadow-sm text-center border border-gray-100">
+            <div class="text-4xl mb-3">🤝</div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">セットグループに参加</h3>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">仲間と共有している「合言葉（グループID）」を入力するか、新しい合言葉を作ってグループを作成してください。</p>
+            <input v-model="groupInput" type="text" placeholder="例: amagasaki-mj-2026" class="border-2 border-orange-200 bg-orange-50 p-3 rounded-xl w-full mb-4 text-center font-bold outline-none text-gray-800 placeholder-orange-300">
+            <button @click="joinGroup" class="bg-orange-500 text-white font-bold py-3 px-4 rounded-xl shadow-sm w-full hover:bg-orange-600 active:bg-orange-700">
+              この合言葉で入室する
             </button>
           </div>
 
-          <!-- 🚪 グループ参加中のメイン画面 -->
-          <div v-else>
-            <div class="flex justify-between items-center bg-gray-800 text-white px-3 py-2 rounded-t-xl text-sm">
-              <span class="font-bold">現在のグループ: {{ currentGroupId }}</span>
-              <button @click="leaveGroup" class="bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-xs">退出する</button>
+          <div v-else class="space-y-4">
+            <div class="bg-orange-500 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+              <div>
+                <p class="text-xs text-orange-200 font-bold mb-1">現在入室中のセット</p>
+                <p class="text-xl font-black tracking-wider">{{ currentGroupId }}</p>
+              </div>
+              <button @click="leaveGroup" class="bg-orange-700 hover:bg-orange-800 px-3 py-1.5 rounded-lg text-xs font-bold">退出する</button>
             </div>
 
-            <!-- サブナビゲーション -->
-            <div class="flex bg-white shadow-sm border-b">
-              <button @click="setTab = 'input'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'input' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">入力</button>
-              <button @click="setTab = 'ranking'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'ranking' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">成績表</button>
-              <button @click="setTab = 'history'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'history' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">履歴</button>
-              <button @click="setTab = 'settings'" class="flex-1 py-3 text-sm font-bold" :class="setTab === 'settings' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-400'">設定</button>
-            </div>
-
-            <div class="bg-white p-4 rounded-b-xl shadow mb-4">
-              <!-- 1. 入力タブ -->
-              <div v-show="setTab === 'input'">
-                <div class="flex gap-2 mb-4">
-                  <div class="w-1/2">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">対局日</label>
-                    <input v-model="matchDate" type="date" class="border p-2 rounded w-full text-sm">
-                  </div>
-                  <div class="w-1/2">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">ルール</label>
-                    <select class="border p-2 rounded w-full text-sm bg-gray-50">
-                      <option>Mリーグ (10-30/オカ)</option>
-                      <option>天鳳 (-195まで)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="flex justify-between items-end mb-2 border-b pb-1">
-                  <h3 class="font-bold text-sm">スコア入力</h3>
-                  <select v-model="inputType" @change="calculateRanks" class="border p-1 rounded text-xs bg-gray-50">
-                    <option value="score">素点 (例: 26000)</option>
-                    <option value="point">pt (マイナス可)</option>
-                  </select>
-                </div>
-
-                <div v-for="(player, index) in currentMatch" :key="index" class="mb-3">
-                  <div class="flex items-center gap-2">
-                    <select v-model="player.name" class="border p-2 rounded w-2/5 text-sm">
-                      <option value="">名前選択</option>
-                      <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
-                    </select>
-                    <input v-model.number="player.score" @input="calculateRanks" type="number" inputmode="decimal" :placeholder="inputType === 'score' ? '持ち点' : 'pt'" class="border p-2 rounded w-2/5 text-right text-sm">
-                    <div class="w-1/5 text-center font-bold text-sm" :class="{'text-red-500': player.rank === 1}">{{ player.rank }}位</div>
-                  </div>
-                  <!-- 詳細データ入力（トグル） -->
-                  <div v-if="showDetailInput && player.name" class="flex gap-2 mt-1 pl-2 bg-gray-50 p-2 rounded border border-gray-100">
-                    <input v-model.number="player.agari" type="number" placeholder="和了回数" class="border p-1 rounded w-1/2 text-xs text-center">
-                    <input v-model.number="player.hoju" type="number" placeholder="放銃回数" class="border p-1 rounded w-1/2 text-xs text-center">
-                  </div>
-                </div>
-
-                <div class="flex justify-between items-center mt-2">
-                  <label class="text-xs text-gray-500 flex items-center gap-1">
-                    <input type="checkbox" v-model="showDetailInput"> 和了・放銃回数も入力する
-                  </label>
-                  <div v-if="showDetailInput" class="flex items-center gap-1">
-                    <span class="text-xs text-gray-500">総局数:</span>
-                    <input v-model.number="totalKyoku" type="number" class="border p-1 rounded w-12 text-xs text-center">
-                  </div>
-                </div>
-
-                <div class="p-2 rounded text-center text-sm font-bold mt-3" :class="isSumValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                  {{ inputType === 'score' ? '合計: ' + totalSum + ' 点' : 'pt合計: ' + totalSum }}
-                  <span v-if="!isSumValid" class="block text-[10px]">数値を合わせてください</span>
-                </div>
-
-                <button @click="saveToCloud" class="bg-green-600 text-white w-full py-3 rounded-lg font-bold mt-4 shadow disabled:opacity-50" :disabled="!isSumValid">
-                  成績を保存する
-                </button>
-              </div>
-
-              <!-- 2. 成績表・ランキングタブ -->
-              <div v-show="setTab === 'ranking'">
-                <h3 class="font-bold text-sm mb-2 flex justify-between">
-                  <span>グループランキング</span>
-                  <button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">⬇ CSVDL(準備中)</button>
-                </h3>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-sm text-center whitespace-nowrap">
-                    <thead class="bg-gray-100 text-gray-600 text-xs">
-                      <tr>
-                        <th class="p-2">名前</th>
-                        <th class="p-2">総合pt</th>
-                        <th class="p-2">トップ率</th>
-                        <th class="p-2">平均順位</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="border-b" v-for="n in 3" :key="n">
-                        <td class="p-2 text-blue-600 underline">プレイヤー{{n}}</td>
-                        <td class="p-2 font-bold" :class="n==1?'text-green-600':'text-red-500'">{{ 100 - n*30 }}.0</td>
-                        <td class="p-2">{{ 40 - n*5 }}%</td>
-                        <td class="p-2">{{ 2.1 + n*0.2 }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <p class="text-xs text-gray-500 mt-2 text-center">※実際の履歴データからの自動集計ロジックは今後実装します。</p>
-                </div>
-              </div>
-
-              <!-- 3. 履歴タブ -->
-              <div v-show="setTab === 'history'">
-                <h3 class="font-bold text-sm mb-3">対局履歴 ({{ currentGroupId }})</h3>
-                <p v-if="history.length === 0" class="text-xs text-gray-500 text-center py-4">データがありません</p>
-                
-                <div v-for="match in history" :key="match.id" class="border rounded p-3 mb-2 bg-gray-50 relative">
-                  <div class="flex justify-between text-xs text-gray-500 border-b pb-1 mb-2">
-                    <span>{{ match.date }}</span>
-                    <button @click="deleteMatch(match.id)" class="text-red-500 bg-red-100 px-2 py-0.5 rounded">削除</button>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2 text-sm">
-                    <div v-for="p in match.players" :key="p.name" class="flex justify-between">
-                      <span>{{ p.name }} ({{ p.rank }}位)</span>
-                      <span class="font-bold" :class="p.score > 0 ? 'text-green-600' : 'text-red-500'">{{ p.score }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4. 設定タブ -->
-              <div v-show="setTab === 'settings'">
-                <h3 class="font-bold text-sm mb-2">メンバー管理</h3>
-                <div class="flex gap-2 mb-3">
-                  <input v-model="newMemberName" type="text" placeholder="名前" class="border p-2 rounded w-full text-sm">
-                  <button @click="addMember" class="bg-blue-500 text-white px-4 rounded text-sm">追加</button>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                  <span v-for="member in members" :key="member" class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs flex items-center gap-1">
-                    {{ member }}
-                    <button @click="removeMember(member)" class="text-red-500 hover:bg-red-200 rounded-full w-4 h-4 text-center leading-none">×</button>
-                  </span>
-                </div>
-              </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+              <h3 class="font-bold text-gray-800 mb-2 border-b pb-2 flex justify-between items-center">
+                <span>グループ内 総合ランキング</span>
+                <span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded">※現在構築中</span>
+              </h3>
+              <p class="text-xs text-gray-500">この機能は次回のアップデートで、入室中のメンバー全員のランキングを自動計算して表示する予定です。現在は「成績分析」タブから、このセットに絞り込んだあなた個人のデータを確認できます。</p>
             </div>
           </div>
         </div>
 
-        <!-- 👤 フリー画面 -->
-        <div v-show="currentTab === 'free'">
-          <h2 class="text-xl font-bold mb-4">フリー成績入力</h2>
-          <div class="bg-white p-4 rounded-xl shadow text-center">
-            <p class="text-sm text-gray-500">※あなた専用の非公開データとして保存されるエリアです。<br>今後のアップデートで入力フォームを実装します。</p>
-          </div>
-        </div>
       </main>
-
-      <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-2 pb-6 shadow-lg">
-        <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">🏠</span><span class="text-[10px] font-bold">ホーム</span></button>
-        <button @click="currentTab = 'set'" :class="currentTab === 'set' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👥</span><span class="text-[10px] font-bold">セット</span></button>
-        <button @click="currentTab = 'free'" :class="currentTab === 'free' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👤</span><span class="text-[10px] font-bold">フリー</span></button>
-      </nav>
     </div>
   </div>
-
-  <style>[v-cloak] { display: none; }</style>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { createApp, ref, computed, onMounted, watch } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDVhqc0taaYIAdjN89Flp5jXXgk3MjNUAA",
@@ -255,125 +344,200 @@
     
     createApp({
       setup() {
-        // --- 認証状態 ---
         const user = ref(null);
+        const activeTab = ref('record');
         
-        // --- タブ・グループ状態 ---
-        const currentTab = ref('set');
-        const setTab = ref('input');
-        // ローカルストレージに保存された前回の合言葉を読み込む
+        // --- 設定・ルールデータ ---
+        const rules = ref([
+          { name: 'Mリーグ (10-30)' },
+          { name: '天鳳 (-195)' },
+          { name: 'デフォルトルール' }
+        ]);
+        const selectedRule = ref('Mリーグ (10-30)');
+
+        // --- 旧アプリのカウンターと編集（ログ）ロジック ---
+        const totalRounds = ref(0);
+        const riichis = ref(0);
+        const calls = ref(0);
+        
+        // 編集機能のためのアクションログ
+        const actionLogs = ref([]); // { id: 123, type: 'win', points: 8000 }
+        
+        const winLogs = computed(() => actionLogs.value.filter(l => l.type === 'win'));
+        const dealInLogs = computed(() => actionLogs.value.filter(l => l.type === 'dealIn'));
+        
+        const winCount = computed(() => winLogs.value.length);
+        const winPointsTotal = computed(() => winLogs.value.reduce((sum, l) => sum + l.points, 0));
+        
+        const dealInCount = computed(() => dealInLogs.value.length);
+        const dealInPointsTotal = computed(() => dealInLogs.value.reduce((sum, l) => sum + l.points, 0));
+
+        const koPoints = [1000, 1300, 2000, 2600, 3900, 5200, 8000, 12000];
+        const oyaPoints = [1500, 2000, 2900, 3900, 5800, 7700, 12000, 18000];
+
+        const addLog = (type, points) => {
+          actionLogs.value.push({ id: Date.now(), type, points });
+        };
+        const removeLog = (id) => {
+          actionLogs.value = actionLogs.value.filter(l => l.id !== id);
+        };
+
+        const rank = ref(1);
+        const tempScoreBalance = ref('');
+        const scoreSign = ref(1);
+
+        // --- Firebase データ同期とフィルター ---
+        const historyData = ref([]);
+        const filterType = ref('all'); // all, private, group
+        const filterRule = ref('全て');
+        
+        // --- グループ機能 ---
         const currentGroupId = ref(localStorage.getItem('currentGroupId') || '');
         const groupInput = ref('');
 
-        // --- セット入力用データ ---
-        const members = ref(['Aさん', 'Bさん', 'Cさん', 'Dさん']); 
-        const newMemberName = ref('');
-        const matchDate = ref(new Date().toISOString().slice(0, 10));
-        const inputType = ref('score'); 
-        const showDetailInput = ref(false);
-        const totalKyoku = ref(null);
-        const currentMatch = ref([
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null },
-          { name: '', score: null, rank: '-', agari: null, hoju: null }
-        ]);
+        let unsubscribe = null;
 
-        const history = ref([]); 
-        let unsubscribe = null; // リアルタイム監視の解除用
-
-        // --- 認証関数 ---
         onMounted(() => {
           onAuthStateChanged(auth, (currentUser) => {
             user.value = currentUser;
-            if(currentUser && currentGroupId.value) {
-              fetchHistory(currentGroupId.value);
+            if (currentUser) {
+              fetchUserHistory();
             }
           });
         });
+
         const login = () => signInWithPopup(auth, provider);
         const logout = () => { if(confirm('ログアウトしますか？')) signOut(auth); };
 
-        // --- グループ関数 ---
         const joinGroup = () => {
           if(!groupInput.value.trim()) return;
           currentGroupId.value = groupInput.value.trim();
           localStorage.setItem('currentGroupId', currentGroupId.value);
-          fetchHistory(currentGroupId.value);
+          filterType.value = 'group'; // 入室したら分析タブも自動でグループに切り替え
+          alert(`セットグループ [${currentGroupId.value}] に入室しました！`);
         };
         const leaveGroup = () => {
-          if(confirm('このセットグループから退出しますか？（データは消えません）')) {
+          if(confirm('このセットグループから退出しますか？')) {
             currentGroupId.value = '';
             localStorage.removeItem('currentGroupId');
-            history.value = [];
-            if(unsubscribe) unsubscribe();
+            filterType.value = 'all';
           }
         };
 
-        // --- メンバー管理関数 ---
-        const addMember = () => { if (newMemberName.value) members.value.push(newMemberName.value); newMemberName.value = ''; };
-        const removeMember = (name) => { members.value = members.value.filter(m => m !== name); };
-
-        // --- 計算・保存関数 ---
-        const calculateRanks = () => {
-          const scores = currentMatch.value.filter(p => p.score !== null && p.score !== '').map(p => p.score).sort((a, b) => b - a);
-          currentMatch.value.forEach(p => {
-            if (p.score !== null && p.score !== '') p.rank = scores.indexOf(p.score) + 1;
-            else p.rank = '-';
+        const fetchUserHistory = () => {
+          if (unsubscribe) unsubscribe();
+          // 自分が保存したすべてのデータを取得（フリーもセットも）
+          const q = query(
+            collection(db, "matches"), 
+            where("userId", "==", user.value.uid),
+            orderBy("createdAt", "desc")
+          );
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            historyData.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           });
         };
-        const totalSum = computed(() => currentMatch.value.reduce((sum, p) => sum + (Number(p.score) || 0), 0));
-        const isSumValid = computed(() => inputType.value === 'score' ? totalSum.value === 100000 : (totalSum.value === 0 && currentMatch.value.some(p => p.score !== null)));
 
-        const saveToCloud = async () => {
-          if(!isSumValid.value || !currentGroupId.value) return;
+        const saveGame = async (destinationType) => {
+          if(totalRounds.value === 0) {
+            alert('局数が0です。+ボタンで局数を入力してください。');
+            return;
+          }
+          if(tempScoreBalance.value === '') {
+            alert('スコアを入力してください。');
+            return;
+          }
+
+          const score = parseFloat(tempScoreBalance.value) * scoreSign.value;
+          const groupIdToSave = destinationType === 'group' ? currentGroupId.value : '';
+
           try {
             await addDoc(collection(db, "matches"), {
-              groupId: currentGroupId.value, // ★保存時にグループIDを紐付ける
-              date: matchDate.value,
-              type: inputType.value,
-              kyoku: totalKyoku.value,
-              players: currentMatch.value.filter(p => p.name).map(p => ({
-                name: p.name, score: p.score, rank: p.rank, agari: p.agari, hoju: p.hoju
-              })),
-              createdAt: new Date(),
-              savedBy: user.value.uid // 誰が保存したかの記録
+              userId: user.value.uid,
+              groupId: groupIdToSave,
+              rule: selectedRule.value,
+              date: new Date().toLocaleDateString('ja-JP'),
+              totalRounds: totalRounds.value,
+              calls: calls.value,
+              riichis: riichis.value,
+              wins: winCount.value,
+              winPointsTotal: winPointsTotal.value,
+              winDetails: winLogs.value.map(l => l.points), // 配列として保存
+              dealIns: dealInCount.value,
+              dealInPointsTotal: dealInPointsTotal.value,
+              dealInDetails: dealInLogs.value.map(l => l.points),
+              rank: rank.value,
+              scoreBalance: score,
+              createdAt: new Date()
             });
-            alert('成績を保存しました！');
-            currentMatch.value.forEach(p => { p.score = null; p.rank = '-'; p.agari = null; p.hoju = null; });
-            totalKyoku.value = null;
+            alert(destinationType === 'group' ? 'セットグループに成績を保存しました！' : '個人のフリー成績として保存しました！');
+            
+            // 入力リセット
+            totalRounds.value = 0; riichis.value = 0; calls.value = 0;
+            actionLogs.value = [];
+            tempScoreBalance.value = ''; scoreSign.value = 1; rank.value = 1;
+            activeTab.value = 'stats';
+            filterType.value = destinationType; // 保存したタブに合わせる
+            
           } catch (error) {
             alert('保存エラー: ' + error.message);
           }
         };
 
-        const deleteMatch = async (id) => {
-          if(confirm('この対局データを削除します。よろしいですか？')) {
+        const deleteRecord = async (id) => {
+          if(confirm('この記録を削除しますか？')) {
             await deleteDoc(doc(db, "matches", id));
           }
         };
 
-        // --- グループ別の履歴取得 ---
-        const fetchHistory = (groupId) => {
-          if(unsubscribe) unsubscribe();
-          // ★指定されたグループIDのデータだけを取得・監視する
-          const q = query(
-            collection(db, "matches"), 
-            where("groupId", "==", groupId), 
-            orderBy("createdAt", "desc")
-          );
-          unsubscribe = onSnapshot(q, (snapshot) => {
-            history.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // --- 旧アプリの高度なスタッツ計算を完全移植 ---
+        const filteredHistory = computed(() => {
+          return historyData.value.filter(h => {
+            // 対象絞り込み
+            if (filterType.value === 'private' && h.groupId !== '') return false;
+            if (filterType.value === 'group' && h.groupId !== currentGroupId.value) return false;
+            // ルール絞り込み
+            if (filterRule.value !== '全て' && h.rule !== filterRule.value) return false;
+            return true;
           });
-        };
+        });
+
+        const stats = computed(() => {
+          const data = filteredHistory.value;
+          let hanchan = data.length, rounds = 0, wins = 0, dealIns = 0, c = 0, r = 0;
+          let wTotal = 0, dTotal = 0, score = 0, rankSum = 0;
+          let ranks = { 1: {count:0}, 2: {count:0}, 3: {count:0}, 4: {count:0} };
+
+          data.forEach(h => {
+            rounds += h.totalRounds || 0; wins += h.wins || 0; dealIns += h.dealIns || 0;
+            c += h.calls || 0; r += h.riichis || 0;
+            wTotal += h.winPointsTotal || 0; dTotal += h.dealInPointsTotal || 0;
+            score += h.scoreBalance || 0;
+            if(ranks[h.rank]) ranks[h.rank].count++;
+            rankSum += h.rank || 1;
+          });
+
+          const safe = (n, d) => d > 0 ? (n / d) : 0;
+          [1,2,3,4].forEach(n => { ranks[n].percent = safe(ranks[n].count, hanchan) * 100; });
+
+          return {
+            hanchan, rounds,
+            winRate: safe(wins, rounds) * 100, dealInRate: safe(dealIns, rounds) * 100,
+            callRate: safe(c, rounds) * 100, riichiRate: safe(r, rounds) * 100,
+            avgWinPoints: safe(wTotal, wins), avgDealInPoints: safe(dTotal, dealIns),
+            score, avgRank: safe(rankSum, hanchan), ranks
+          };
+        });
 
         return { 
-          user, login, logout,
-          currentTab, setTab, 
+          user, login, logout, activeTab,
+          rules, selectedRule,
+          totalRounds, riichis, calls,
+          koPoints, oyaPoints, actionLogs, winLogs, dealInLogs, winCount, dealInCount, winPointsTotal, dealInPointsTotal,
+          addLog, removeLog,
+          rank, tempScoreBalance, scoreSign,
           currentGroupId, groupInput, joinGroup, leaveGroup,
-          members, newMemberName, addMember, removeMember,
-          matchDate, currentMatch, inputType, showDetailInput, totalKyoku,
-          calculateRanks, totalSum, isSumValid, saveToCloud, history, deleteMatch
+          saveGame, deleteRecord,
+          filterType, filterRule, filteredHistory, stats
         };
       }
     }).mount('#app');
