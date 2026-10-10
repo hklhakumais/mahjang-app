@@ -9,7 +9,7 @@
 <body class="bg-gray-100 pb-20 font-sans">
   <div id="app" v-cloak>
     
-    <!-- 🔒 ログイン画面（ログインしていない時に表示） -->
+    <!-- 🔒 ログイン画面 -->
     <div v-if="!user" class="h-screen flex flex-col items-center justify-center p-4 bg-green-50">
       <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm">
         <div class="text-5xl mb-4">🀄️</div>
@@ -21,11 +21,10 @@
       </div>
     </div>
 
-    <!-- 📱 メインアプリ画面（ログインしている時に表示） -->
+    <!-- 📱 メインアプリ画面 -->
     <div v-else>
       <header class="bg-green-700 text-white p-4 font-bold text-lg shadow-md flex justify-between items-center">
         <span>麻雀成績管理</span>
-        <!-- ユーザー情報とログアウトボタン -->
         <div class="flex items-center gap-2">
           <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-green-500">
           <button @click="logout" class="text-[10px] bg-green-800 hover:bg-green-900 px-2 py-1 rounded">ログアウト</button>
@@ -33,7 +32,7 @@
       </header>
 
       <main class="p-4">
-        <!-- 🏠 ホーム（個人ダッシュボード） -->
+        <!-- 🏠 ホーム -->
         <div v-show="currentTab === 'home'">
           <h2 class="text-xl font-bold mb-4">マイページ</h2>
           <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -88,10 +87,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    // ★ signInWithPopup を signInWithRedirect に変更しました
+    import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-    // 組み込み済みのFirebase設定
     const firebaseConfig = {
       apiKey: "AIzaSyDVhqc0taaYIAdjN89Flp5jXXgk3MjNUAA",
       authDomain: "mahjang-app.firebaseapp.com",
@@ -118,9 +117,8 @@
         });
 
         const login = () => {
-          signInWithPopup(auth, provider).catch((error) => {
-            alert('ログインに失敗しました: ' + error.message);
-          });
+          // スマホでも確実に動くリダイレクト方式に変更
+          signInWithRedirect(auth, provider);
         };
 
         const logout = () => {
