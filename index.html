@@ -32,7 +32,7 @@
     <!-- 📱 メインアプリ画面 -->
     <div v-else class="min-h-screen relative">
       
-      <!-- ヘッダー（旧アプリのデザインを踏襲） -->
+      <!-- ヘッダー -->
       <header class="bg-white shadow-sm sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <h1 class="text-lg font-bold text-gray-800 select-none">🀄️ 麻雀成績 Tracker</h1>
@@ -52,7 +52,7 @@
       <main class="max-w-md mx-auto p-4 space-y-4 pb-24">
         
         <!-- ========================================== -->
-        <!-- 📝 1. 対局入力タブ（旧アプリを完全再現＋編集機能） -->
+        <!-- 📝 1. 対局入力タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'record'" class="space-y-4">
           <div class="bg-white rounded-2xl shadow-sm p-5 space-y-6 border border-gray-100">
@@ -104,7 +104,7 @@
                   <span class="font-bold text-blue-800 text-sm">和了 (計 {{ winCount }}回)</span>
                   <span class="text-xs text-blue-600 font-bold">合計: {{ winPointsTotal.toLocaleString() }}点</span>
                 </div>
-                <!-- ★進化ポイント：入力履歴と削除（編集）機能 -->
+                <!-- 入力ログ（バッジ） -->
                 <div v-if="winLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-blue-100">
                   <span v-for="log in winLogs" :key="log.id" class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
                     {{ log.points }}点 <button @click="removeLog(log.id)" class="text-blue-500 hover:text-blue-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
@@ -116,8 +116,13 @@
                 </div>
                 <div class="border-t border-dashed border-blue-200 my-2 mx-1"></div>
                 <div class="text-[10px] font-bold text-blue-500 mb-1 ml-1">【親】</div>
-                <div class="grid grid-cols-4 gap-1.5">
+                <div class="grid grid-cols-4 gap-1.5 mb-3">
                   <button v-for="p in oyaPoints" :key="'w-o'+p" @click="addLog('win', p)" class="px-1 py-2.5 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-black shadow-sm active:bg-blue-100">{{ p }}</button>
+                </div>
+                <!-- ★復活：和了の自由入力欄 -->
+                <div class="flex space-x-2">
+                  <input v-model.number="tempWinPoint" type="number" inputmode="numeric" placeholder="自由入力 (例: 6400)" class="flex-1 px-3 py-2 rounded-lg border border-blue-200 outline-none text-sm bg-white">
+                  <button @click="addCustomLog('win')" class="px-3 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm shadow-sm active:bg-blue-700">追加</button>
                 </div>
               </div>
 
@@ -127,7 +132,7 @@
                   <span class="font-bold text-red-800 text-sm">放銃 (計 {{ dealInCount }}回)</span>
                   <span class="text-xs text-red-600 font-bold">合計: {{ dealInPointsTotal.toLocaleString() }}点</span>
                 </div>
-                <!-- ★進化ポイント：入力履歴と削除（編集）機能 -->
+                <!-- 入力ログ（バッジ） -->
                 <div v-if="dealInLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-red-100">
                   <span v-for="log in dealInLogs" :key="log.id" class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
                     {{ log.points }}点 <button @click="removeLog(log.id)" class="text-red-500 hover:text-red-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
@@ -139,8 +144,13 @@
                 </div>
                 <div class="border-t border-dashed border-red-200 my-2 mx-1"></div>
                 <div class="text-[10px] font-bold text-red-500 mb-1 ml-1">【親への放銃】</div>
-                <div class="grid grid-cols-4 gap-1.5">
+                <div class="grid grid-cols-4 gap-1.5 mb-3">
                   <button v-for="p in oyaPoints" :key="'d-o'+p" @click="addLog('dealIn', p)" class="px-1 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-black shadow-sm active:bg-red-100">{{ p }}</button>
+                </div>
+                <!-- ★復活：放銃の自由入力欄 -->
+                <div class="flex space-x-2">
+                  <input v-model.number="tempDealInPoint" type="number" inputmode="numeric" placeholder="自由入力 (例: 6400)" class="flex-1 px-3 py-2 rounded-lg border border-red-200 outline-none text-sm bg-white">
+                  <button @click="addCustomLog('dealIn')" class="px-3 py-2 bg-red-600 text-white font-bold rounded-lg text-sm shadow-sm active:bg-red-700">追加</button>
                 </div>
               </div>
             </div>
@@ -164,7 +174,7 @@
                 </div>
               </div>
               
-              <!-- 保存ボタン（セットとフリーをシームレスに振り分け） -->
+              <!-- 保存ボタン -->
               <div class="space-y-2 mt-6">
                 <button @click="saveGame('private')" class="w-full py-3.5 text-white text-base font-bold rounded-xl shadow-md bg-blue-500 hover:bg-blue-600 active:bg-blue-700 flex justify-center items-center gap-2">
                   <span>👤 個人のフリー成績として保存</span>
@@ -179,7 +189,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 📊 2. 成績分析タブ（旧アプリのスタッツを完全再現） -->
+        <!-- 📊 2. 成績分析タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'stats'" class="space-y-4">
           
@@ -286,7 +296,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 👥 3. セット共有タブ（新機能） -->
+        <!-- 👥 3. セット共有タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'group'" class="space-y-4">
           <div v-if="!currentGroupId" class="bg-white p-6 rounded-2xl shadow-sm text-center border border-gray-100">
@@ -313,7 +323,7 @@
                 <span>グループ内 総合ランキング</span>
                 <span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded">※現在構築中</span>
               </h3>
-              <p class="text-xs text-gray-500">この機能は次回のアップデートで、入室中のメンバー全員のランキングを自動計算して表示する予定です。現在は「成績分析」タブから、このセットに絞り込んだあなた個人のデータを確認できます。</p>
+              <p class="text-xs text-gray-500">この機能は次回のアップデートで、入室中のメンバー全員のランキングを自動計算して表示する予定です。現在は「成績分析」タブから、このセットに絞り込んだデータを確認できます。</p>
             </div>
           </div>
         </div>
@@ -324,9 +334,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    import { createApp, ref, computed, onMounted, watch } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDVhqc0taaYIAdjN89Flp5jXXgk3MjNUAA",
@@ -355,13 +365,12 @@
         ]);
         const selectedRule = ref('Mリーグ (10-30)');
 
-        // --- 旧アプリのカウンターと編集（ログ）ロジック ---
+        // --- 入力カウンターと編集（ログ）ロジック ---
         const totalRounds = ref(0);
         const riichis = ref(0);
         const calls = ref(0);
         
-        // 編集機能のためのアクションログ
-        const actionLogs = ref([]); // { id: 123, type: 'win', points: 8000 }
+        const actionLogs = ref([]); 
         
         const winLogs = computed(() => actionLogs.value.filter(l => l.type === 'win'));
         const dealInLogs = computed(() => actionLogs.value.filter(l => l.type === 'dealIn'));
@@ -375,35 +384,52 @@
         const koPoints = [1000, 1300, 2000, 2600, 3900, 5200, 8000, 12000];
         const oyaPoints = [1500, 2000, 2900, 3900, 5800, 7700, 12000, 18000];
 
-        const addLog = (type, points) => {
-          actionLogs.value.push({ id: Date.now(), type, points });
-        };
-        const removeLog = (id) => {
-          actionLogs.value = actionLogs.value.filter(l => l.id !== id);
+        // 自由入力用の変数
+        const tempWinPoint = ref('');
+        const tempDealInPoint = ref('');
+
+        const addLog = (type, points) => { actionLogs.value.push({ id: Date.now(), type, points }); };
+        const removeLog = (id) => { actionLogs.value = actionLogs.value.filter(l => l.id !== id); };
+
+        // 自由入力を追加してログ（バッジ）化する関数
+        const addCustomLog = (type) => {
+          if (type === 'win' && tempWinPoint.value) {
+            addLog('win', Number(tempWinPoint.value));
+            tempWinPoint.value = '';
+          } else if (type === 'dealIn' && tempDealInPoint.value) {
+            addLog('dealIn', Number(tempDealInPoint.value));
+            tempDealInPoint.value = '';
+          }
         };
 
         const rank = ref(1);
         const tempScoreBalance = ref('');
         const scoreSign = ref(1);
 
-        // --- Firebase データ同期とフィルター ---
-        const historyData = ref([]);
-        const filterType = ref('all'); // all, private, group
+        // --- Firebase データ同期 ---
+        const myMatches = ref([]);
+        const groupMatches = ref([]);
+        
+        const filterType = ref('all');
         const filterRule = ref('全て');
         
-        // --- グループ機能 ---
         const currentGroupId = ref(localStorage.getItem('currentGroupId') || '');
         const groupInput = ref('');
 
-        let unsubscribe = null;
+        let unsubMyMatches = null;
+        let unsubGroupMatches = null;
 
         onMounted(() => {
           onAuthStateChanged(auth, (currentUser) => {
             user.value = currentUser;
             if (currentUser) {
-              fetchUserHistory();
+              fetchHistory();
             }
           });
+        });
+
+        watch(currentGroupId, () => {
+          if(user.value) fetchHistory();
         });
 
         const login = () => signInWithPopup(auth, provider);
@@ -413,7 +439,7 @@
           if(!groupInput.value.trim()) return;
           currentGroupId.value = groupInput.value.trim();
           localStorage.setItem('currentGroupId', currentGroupId.value);
-          filterType.value = 'group'; // 入室したら分析タブも自動でグループに切り替え
+          filterType.value = 'group'; 
           alert(`セットグループ [${currentGroupId.value}] に入室しました！`);
         };
         const leaveGroup = () => {
@@ -424,28 +450,28 @@
           }
         };
 
-        const fetchUserHistory = () => {
-          if (unsubscribe) unsubscribe();
-          // 自分が保存したすべてのデータを取得（フリーもセットも）
-          const q = query(
-            collection(db, "matches"), 
-            where("userId", "==", user.value.uid),
-            orderBy("createdAt", "desc")
-          );
-          unsubscribe = onSnapshot(q, (snapshot) => {
-            historyData.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const fetchHistory = () => {
+          if (unsubMyMatches) unsubMyMatches();
+          if (unsubGroupMatches) unsubGroupMatches();
+          
+          const qMe = query(collection(db, "matches"), where("userId", "==", user.value.uid));
+          unsubMyMatches = onSnapshot(qMe, (snapshot) => {
+            myMatches.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           });
+
+          if (currentGroupId.value) {
+            const qGroup = query(collection(db, "matches"), where("groupId", "==", currentGroupId.value));
+            unsubGroupMatches = onSnapshot(qGroup, (snapshot) => {
+              groupMatches.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+          } else {
+            groupMatches.value = [];
+          }
         };
 
         const saveGame = async (destinationType) => {
-          if(totalRounds.value === 0) {
-            alert('局数が0です。+ボタンで局数を入力してください。');
-            return;
-          }
-          if(tempScoreBalance.value === '') {
-            alert('スコアを入力してください。');
-            return;
-          }
+          if(totalRounds.value === 0) { alert('局数が0です。+ボタンで局数を入力してください。'); return; }
+          if(tempScoreBalance.value === '') { alert('スコアを入力してください。'); return; }
 
           const score = parseFloat(tempScoreBalance.value) * scoreSign.value;
           const groupIdToSave = destinationType === 'group' ? currentGroupId.value : '';
@@ -456,27 +482,18 @@
               groupId: groupIdToSave,
               rule: selectedRule.value,
               date: new Date().toLocaleDateString('ja-JP'),
-              totalRounds: totalRounds.value,
-              calls: calls.value,
-              riichis: riichis.value,
-              wins: winCount.value,
-              winPointsTotal: winPointsTotal.value,
-              winDetails: winLogs.value.map(l => l.points), // 配列として保存
-              dealIns: dealInCount.value,
-              dealInPointsTotal: dealInPointsTotal.value,
-              dealInDetails: dealInLogs.value.map(l => l.points),
-              rank: rank.value,
-              scoreBalance: score,
+              totalRounds: totalRounds.value, calls: calls.value, riichis: riichis.value,
+              wins: winCount.value, winPointsTotal: winPointsTotal.value, winDetails: winLogs.value.map(l => l.points),
+              dealIns: dealInCount.value, dealInPointsTotal: dealInPointsTotal.value, dealInDetails: dealInLogs.value.map(l => l.points),
+              rank: rank.value, scoreBalance: score,
               createdAt: new Date()
             });
             alert(destinationType === 'group' ? 'セットグループに成績を保存しました！' : '個人のフリー成績として保存しました！');
             
-            // 入力リセット
-            totalRounds.value = 0; riichis.value = 0; calls.value = 0;
-            actionLogs.value = [];
+            totalRounds.value = 0; riichis.value = 0; calls.value = 0; actionLogs.value = [];
             tempScoreBalance.value = ''; scoreSign.value = 1; rank.value = 1;
-            activeTab.value = 'stats';
-            filterType.value = destinationType; // 保存したタブに合わせる
+            tempWinPoint.value = ''; tempDealInPoint.value = '';
+            activeTab.value = 'stats'; filterType.value = destinationType;
             
           } catch (error) {
             alert('保存エラー: ' + error.message);
@@ -484,18 +501,26 @@
         };
 
         const deleteRecord = async (id) => {
-          if(confirm('この記録を削除しますか？')) {
-            await deleteDoc(doc(db, "matches", id));
-          }
+          if(confirm('この記録を削除しますか？')) await deleteDoc(doc(db, "matches", id));
         };
 
-        // --- 旧アプリの高度なスタッツ計算を完全移植 ---
+        const combinedHistory = computed(() => {
+          const combined = [...myMatches.value];
+          const myIds = new Set(combined.map(m => m.id));
+          groupMatches.value.forEach(m => {
+            if (!myIds.has(m.id)) combined.push(m);
+          });
+          return combined.sort((a, b) => {
+            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return timeB - timeA;
+          });
+        });
+
         const filteredHistory = computed(() => {
-          return historyData.value.filter(h => {
-            // 対象絞り込み
+          return combinedHistory.value.filter(h => {
             if (filterType.value === 'private' && h.groupId !== '') return false;
             if (filterType.value === 'group' && h.groupId !== currentGroupId.value) return false;
-            // ルール絞り込み
             if (filterRule.value !== '全て' && h.rule !== filterRule.value) return false;
             return true;
           });
@@ -529,15 +554,12 @@
         });
 
         return { 
-          user, login, logout, activeTab,
-          rules, selectedRule,
-          totalRounds, riichis, calls,
-          koPoints, oyaPoints, actionLogs, winLogs, dealInLogs, winCount, dealInCount, winPointsTotal, dealInPointsTotal,
-          addLog, removeLog,
+          user, login, logout, activeTab, rules, selectedRule,
+          totalRounds, riichis, calls, koPoints, oyaPoints, actionLogs, winLogs, dealInLogs, winCount, dealInCount, winPointsTotal, dealInPointsTotal,
+          tempWinPoint, tempDealInPoint, addLog, removeLog, addCustomLog, 
           rank, tempScoreBalance, scoreSign,
           currentGroupId, groupInput, joinGroup, leaveGroup,
-          saveGame, deleteRecord,
-          filterType, filterRule, filteredHistory, stats
+          saveGame, deleteRecord, filterType, filterRule, filteredHistory, stats
         };
       }
     }).mount('#app');
