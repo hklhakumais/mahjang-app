@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>麻雀成績管理</title>
+  <title>麻雀成績管理(テスト)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ★ どこでエラーが起きているか画面に出すための仕掛け -->
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      alert("【システムエラー】\n" + message + "\n行番号: " + lineno);
+      return true;
+    };
+  </script>
 </head>
 <body class="bg-gray-100 pb-20 font-sans">
   <div id="app" v-cloak>
     
-    <!-- 🔒 ログイン画面 -->
     <div v-if="!user" class="h-screen flex flex-col items-center justify-center p-4 bg-green-50">
       <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm">
         <div class="text-5xl mb-4">🀄️</div>
@@ -21,7 +27,6 @@
       </div>
     </div>
 
-    <!-- 📱 メインアプリ画面 -->
     <div v-else>
       <header class="bg-green-700 text-white p-4 font-bold text-lg shadow-md flex justify-between items-center">
         <span>麻雀成績管理</span>
@@ -39,14 +44,8 @@
             <p class="text-gray-800 font-bold mb-2">ようこそ、{{ user.displayName }} さん！</p>
             <p class="text-gray-600 text-sm mb-4">ここはあなた専用のダッシュボードです。</p>
             <div class="grid grid-cols-2 gap-4 text-center">
-              <div class="bg-blue-50 p-3 rounded">
-                <p class="text-xs text-gray-500">通算ポイント</p>
-                <p class="text-xl font-bold text-blue-600">---</p>
-              </div>
-              <div class="bg-red-50 p-3 rounded">
-                <p class="text-xs text-gray-500">平均着順</p>
-                <p class="text-xl font-bold text-red-600">-.-</p>
-              </div>
+              <div class="bg-blue-50 p-3 rounded"><p class="text-xs text-gray-500">通算ポイント</p><p class="text-xl font-bold text-blue-600">---</p></div>
+              <div class="bg-red-50 p-3 rounded"><p class="text-xs text-gray-500">平均着順</p><p class="text-xl font-bold text-red-600">-.-</p></div>
             </div>
           </div>
         </div>
@@ -57,21 +56,14 @@
             <p class="font-bold">【今後のアップデート予定】</p>
             <p>ここに「合言葉（グループID）」を入力して、特定のメンバーだけで成績を共有する機能を実装します。</p>
           </div>
-          <div class="bg-white p-4 rounded-xl shadow text-center">
-            <p class="text-sm text-gray-500">（※ここには前回までのセット入力画面が入ります。今回はログイン機能のテストのため一時的に隠しています）</p>
-          </div>
         </div>
 
         <!-- 👤 フリー画面 -->
         <div v-show="currentTab === 'free'">
           <h2 class="text-xl font-bold mb-4">フリー成績入力</h2>
-          <div class="bg-white p-4 rounded-xl shadow text-center">
-            <p class="text-sm text-gray-500">（※あなた専用の非公開フォルダに保存されるようになります）</p>
-          </div>
         </div>
       </main>
 
-      <!-- 下部タブ -->
       <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-2 pb-6 shadow-lg">
         <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">🏠</span><span class="text-[10px] font-bold">ホーム</span></button>
         <button @click="currentTab = 'set'" :class="currentTab === 'set' ? 'text-green-600' : 'text-gray-400'" class="flex flex-col items-center w-1/3"><span class="text-2xl">👥</span><span class="text-[10px] font-bold">セット</span></button>
@@ -80,15 +72,13 @@
     </div>
   </div>
 
-  <style>
-    [v-cloak] { display: none; }
-  </style>
+  <style>[v-cloak] { display: none; }</style>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    // ★ signInWithPopup を signInWithRedirect に変更しました
-    import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    // スマホブラウザに強い signInWithPopup に戻しています
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
     const firebaseConfig = {
@@ -100,38 +90,43 @@
       appId: "1:668068320734:web:ad06c784d01f4c1401f94f"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    
-    createApp({
-      setup() {
-        const currentTab = ref('home');
-        const user = ref(null);
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      
+      createApp({
+        setup() {
+          const currentTab = ref('home');
+          const user = ref(null);
 
-        onMounted(() => {
-          onAuthStateChanged(auth, (currentUser) => {
-            user.value = currentUser;
+          onMounted(() => {
+            // アプリ起動時にログイン状態を確認
+            onAuthStateChanged(auth, (currentUser) => {
+              user.value = currentUser;
+            });
           });
-        });
 
-        const login = () => {
-          // スマホでも確実に動くリダイレクト方式に変更
-          signInWithRedirect(auth, provider);
-        };
+          const login = async () => {
+            alert("✅ ボタンが正常に反応しました！これからログイン処理を開始します。");
+            try {
+              await signInWithPopup(auth, provider);
+            } catch (error) {
+              alert("❌ ログイン処理中にエラーが発生しました:\n" + error.message);
+            }
+          };
 
-        const logout = () => {
-          if(confirm('ログアウトしますか？')) {
-            signOut(auth);
-          }
-        };
+          const logout = () => {
+            if(confirm('ログアウトしますか？')) signOut(auth);
+          };
 
-        return { 
-          currentTab, user, login, logout
-        };
-      }
-    }).mount('#app');
+          return { currentTab, user, login, logout };
+        }
+      }).mount('#app');
+    } catch (e) {
+      alert("❌ プログラムの初期設定でエラーが起きました:\n" + e.message);
+    }
   </script>
 </body>
 </html>
