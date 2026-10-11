@@ -609,12 +609,21 @@
         let unsubMyMatches = null;
         let unsubGroupMatches = null;
 
-        onMounted(() => {
+                onMounted(() => {
           onAuthStateChanged(auth, (currentUser) => {
             user.value = currentUser;
-            if (currentUser) fetchHistory();
+            if (currentUser) {
+              // ログイン成功時、保存されている合言葉があれば自動でセット状態にする
+              const savedGroup = localStorage.getItem('currentGroupId');
+              if (savedGroup) {
+                currentGroupId.value = savedGroup;
+                filterType.value = 'group'; // 分析タブも自動でセット用に切り替え
+              }
+              fetchHistory();
+            }
           });
         });
+
 
         watch(currentGroupId, () => { if(user.value) fetchHistory(); });
 
