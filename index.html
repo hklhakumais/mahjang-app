@@ -22,7 +22,6 @@
       <div class="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-sm border border-gray-100">
         <div class="text-5xl mb-4">🀄️</div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">麻雀成績 Tracker</h1>
-        <p class="text-sm text-gray-500 mb-8">クラウドで安全にデータを管理します。</p>
         <button @click="login" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
           <span>Googleでログインして始める</span>
         </button>
@@ -35,7 +34,6 @@
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <h1 class="text-lg font-bold text-gray-800 select-none">🀄️ 麻雀成績 Tracker</h1>
           <div class="flex items-center gap-2">
-            <img v-if="user.photoURL" :src="user.photoURL" class="w-7 h-7 rounded-full border border-gray-200">
             <button @click="logout" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded">ログアウト</button>
           </div>
         </div>
@@ -61,86 +59,7 @@
               </select>
             </div>
 
-            <div>
-              <h2 class="text-xs font-bold text-gray-400 mb-2 uppercase">進行状況 (タップで+1)</h2>
-              <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                <span class="text-gray-700 font-medium w-24 select-none">局数</span>
-                <div class="flex items-center space-x-4">
-                  <button @click="totalRounds = Math.max(0, totalRounds - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold">-</button>
-                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ totalRounds }}</span>
-                  <button @click="totalRounds++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold shadow-sm">+</button>
-                </div>
-              </div>
-              <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                <span class="text-gray-700 font-medium w-24 select-none">リーチ</span>
-                <div class="flex items-center space-x-4">
-                  <button @click="riichis = Math.max(0, riichis - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold">-</button>
-                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ riichis }}</span>
-                  <button @click="riichis++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold">+</button>
-                </div>
-              </div>
-              <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                <span class="text-gray-700 font-medium w-24 select-none">副露</span>
-                <div class="flex items-center space-x-4">
-                  <button @click="calls = Math.max(0, calls - 1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-2xl font-bold">-</button>
-                  <span class="text-3xl font-bold w-12 text-center text-gray-800 select-none">{{ calls }}</span>
-                  <button @click="calls++" class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold">+</button>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h2 class="text-xs font-bold text-gray-400 mb-3 uppercase">和了・放銃 (点数をタップ)</h2>
-              <div class="bg-blue-50 rounded-xl p-3 mb-3 border border-blue-100 relative">
-                <div class="flex justify-between items-center mb-2">
-                  <span class="font-bold text-blue-800 text-sm">和了 (計 {{ winCount }}回)</span>
-                  <span class="text-xs text-blue-600 font-bold">合計: {{ winPointsTotal.toLocaleString() }}点</span>
-                </div>
-                <div v-if="winLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-blue-100">
-                  <span v-for="log in winLogs" :key="log.id" class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
-                    {{ log.points }}点 <button @click="removeLog(log.id)" class="text-blue-500 hover:text-blue-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
-                  </span>
-                </div>
-                <div class="text-[10px] font-bold text-blue-500 mb-1 ml-1">【子】</div>
-                <div class="grid grid-cols-4 gap-1.5 mb-2">
-                  <button v-for="p in koPoints" :key="'w-k'+p" @click="addLog('win', p)" class="px-1 py-2.5 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-black shadow-sm">{{ p }}</button>
-                </div>
-                <div class="text-[10px] font-bold text-blue-500 mb-1 ml-1 mt-3">【親】</div>
-                <div class="grid grid-cols-4 gap-1.5 mb-3">
-                  <button v-for="p in oyaPoints" :key="'w-o'+p" @click="addLog('win', p)" class="px-1 py-2.5 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-black shadow-sm">{{ p }}</button>
-                </div>
-                <div class="flex space-x-2">
-                  <input v-model.number="tempWinPoint" type="number" inputmode="numeric" placeholder="自由入力 (例: 6400)" class="flex-1 px-3 py-2 rounded-lg border border-blue-200 outline-none text-sm bg-white">
-                  <button @click="addCustomLog('win')" class="px-3 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm shadow-sm">追加</button>
-                </div>
-              </div>
-
-              <div class="bg-red-50 rounded-xl p-3 border border-red-100 relative">
-                <div class="flex justify-between items-center mb-2">
-                  <span class="font-bold text-red-800 text-sm">放銃 (計 {{ dealInCount }}回)</span>
-                  <span class="text-xs text-red-600 font-bold">合計: {{ dealInPointsTotal.toLocaleString() }}点</span>
-                </div>
-                <div v-if="dealInLogs.length > 0" class="flex flex-wrap gap-1.5 mb-3 bg-white p-2 rounded-lg border border-red-100">
-                  <span v-for="log in dealInLogs" :key="log.id" class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
-                    {{ log.points }}点 <button @click="removeLog(log.id)" class="text-red-500 hover:text-red-800 text-sm leading-none rounded-full w-4 h-4 bg-white text-center">×</button>
-                  </span>
-                </div>
-                <div class="text-[10px] font-bold text-red-500 mb-1 ml-1">【子への放銃】</div>
-                <div class="grid grid-cols-4 gap-1.5 mb-2">
-                  <button v-for="p in koPoints" :key="'d-k'+p" @click="addLog('dealIn', p)" class="px-1 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-black shadow-sm">{{ p }}</button>
-                </div>
-                <div class="text-[10px] font-bold text-red-500 mb-1 ml-1 mt-3">【親への放銃】</div>
-                <div class="grid grid-cols-4 gap-1.5 mb-3">
-                  <button v-for="p in oyaPoints" :key="'d-o'+p" @click="addLog('dealIn', p)" class="px-1 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-black shadow-sm">{{ p }}</button>
-                </div>
-                <div class="flex space-x-2">
-                  <input v-model.number="tempDealInPoint" type="number" inputmode="numeric" placeholder="自由入力 (例: 6400)" class="flex-1 px-3 py-2 rounded-lg border border-red-200 outline-none text-sm bg-white">
-                  <button @click="addCustomLog('dealIn')" class="px-3 py-2 bg-red-600 text-white font-bold rounded-lg text-sm shadow-sm">追加</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pt-4 border-t border-gray-100">
+            <div class="pt-2">
               <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">半荘終了時の入力</h2>
               <div class="grid grid-cols-2 gap-3 mb-4">
                 <div>
@@ -169,162 +88,57 @@
             <span class="text-xl">👛</span><span>1日の収支(場代等)をまとめて記録</span>
           </button>
         </div>
-
         <!-- ========================================== -->
         <!-- 📊 2. 成績分析タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'stats'" class="space-y-4">
-          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col space-y-3">
-            <div class="flex items-center space-x-3">
-              <span class="text-sm font-bold text-gray-500 w-16 text-right">表示対象:</span>
-              <select v-model="filterType" class="flex-1 py-2 px-3 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm font-medium">
-                <option value="private">個人のフリー成績のみ</option>
-                <option value="all">すべての成績（個人＋セット）</option>
+          <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+            <div class="flex space-x-2 mb-4">
+              <select v-model="filterRule" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-bold text-gray-700">
+                <option value="全て">全店舗・ルール</option>
+                <option v-for="r in rules" :key="r.name" :value="r.name">{{ r.name }}</option>
               </select>
-            </div>
-            <div class="flex items-center space-x-3">
-              <span class="text-sm font-bold text-gray-500 w-16 text-right">期間:</span>
-              <select v-model="filterPeriod" class="flex-1 py-2 px-3 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm font-medium">
+              <select v-model="filterPeriod" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-bold text-gray-700">
+                <option value="総合">全期間</option>
                 <option v-for="p in availablePeriods" :key="p" :value="p">{{ p }}</option>
               </select>
             </div>
-          </div>
-
-          <div v-if="filteredHistory.length === 0" class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500 font-medium border border-gray-100">
-            データがありません。
-          </div>
-
-          <div v-else class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <div class="text-xs text-gray-500 font-medium mb-1">半荘数 / 総局数</div>
-                <div class="text-2xl font-black text-gray-800">{{ stats.hanchan }}<span class="text-sm font-normal text-gray-500 ml-1">半荘</span> / {{ stats.rounds }}<span class="text-sm font-normal text-gray-500 ml-1">局</span></div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="bg-blue-50 p-3 rounded-xl text-center border border-blue-100">
+                <div class="text-[10px] font-bold text-blue-500 mb-1">場代抜き純収支</div>
+                <div class="text-lg font-black text-blue-700" :class="{'text-red-600': stats.pureMoney < 0}">{{ stats.pureMoney > 0 ? '+' : '' }}{{ stats.pureMoney.toLocaleString() }}</div>
               </div>
-              <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <div class="text-xs text-gray-500 font-medium mb-1">累計スコア (pt)</div>
-                <div class="text-2xl font-black" :class="stats.score >= 0 ? 'text-green-600' : 'text-red-600'">{{ stats.score > 0 ? '+' : '' }}{{ stats.score.toFixed(1) }}</div>
-              </div>
-              <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 col-span-2 space-y-2">
-                <div class="flex justify-between items-center border-b pb-2">
-                  <span class="text-xs text-gray-500 font-medium">累計金額収支 (場代抜き)</span>
-                  <span class="text-lg font-black" :class="stats.pureMoney >= 0 ? 'text-green-600' : 'text-red-600'">{{ stats.pureMoney > 0 ? '+' : '' }}{{ stats.pureMoney.toLocaleString() }} 円</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-xs text-gray-500 font-medium">実際の財布 (場代精算込み)</span>
-                  <span class="text-xl font-black" :class="stats.totalMoney >= 0 ? 'text-green-600' : 'text-red-600'">{{ stats.totalMoney > 0 ? '+' : '' }}{{ stats.totalMoney.toLocaleString() }} 円</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-              <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xs font-bold text-gray-800">成績推移</h3>
-                <div class="flex bg-gray-100 rounded-lg p-1">
-                  <button @click="chartType = 'score'" :class="chartType === 'score' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'" class="text-[10px] font-bold px-2 py-0.5 rounded-md">スコア</button>
-                  <button @click="chartType = 'money'" :class="chartType === 'money' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'" class="text-[10px] font-bold px-2 py-0.5 rounded-md">純収支</button>
-                </div>
-              </div>
-              <div class="w-full h-32 flex items-center justify-center relative">
-                <span v-if="(chartType === 'score' ? dbStats.chartDataScore : dbStats.chartDataMoney).length <= 1" class="text-gray-400 text-xs">データ不足</span>
-                <svg v-else viewBox="0 0 300 100" class="w-full h-full overflow-visible">
-                  <line x1="0" :y1="getChartZeroY()" x2="300" :y2="getChartZeroY()" stroke="#cbd5e1" stroke-dasharray="4 4" stroke-width="1" />
-                  <polyline :points="getChartPoints()" fill="none" :stroke="chartType === 'score' ? '#3b82f6' : '#10b981'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 space-y-4">
-              <h3 class="font-bold text-gray-800 border-b pb-2">主要スタッツ</h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">和了率</div>
-                  <div class="text-xl font-bold text-blue-600">{{ stats.winRate.toFixed(2) }}%</div>
-                  <div class="text-[10px] text-gray-400 mt-1">平均打点: {{ Math.round(stats.avgWinPoints).toLocaleString() }}点</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">放銃率</div>
-                  <div class="text-xl font-bold text-red-600">{{ stats.dealInRate.toFixed(2) }}%</div>
-                  <div class="text-[10px] text-gray-400 mt-1">平均失点: {{ Math.round(stats.avgDealInPoints).toLocaleString() }}点</div>
-                </div>
-                <div class="pt-2 border-t border-gray-50">
-                  <div class="text-xs text-gray-500 mb-1">副露率</div>
-                  <div class="text-lg font-bold text-gray-700">{{ stats.callRate.toFixed(2) }}%</div>
-                </div>
-                <div class="pt-2 border-t border-gray-50">
-                  <div class="text-xs text-gray-500 mb-1">リーチ率</div>
-                  <div class="text-lg font-bold text-gray-700">{{ stats.riichiRate.toFixed(2) }}%</div>
-                </div>
-              </div>
-              
-              <div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                <h4 class="text-xs font-bold text-gray-500">詳細データ (調整効率)</h4>
-                <div class="grid grid-cols-3 gap-2">
-                  <div>
-                    <div class="text-[10px] text-gray-500 mb-1">打点効率</div>
-                    <div class="text-sm font-bold text-blue-600">+{{ Math.round(stats.adjWinPoints).toLocaleString() }}</div>
-                  </div>
-                  <div>
-                    <div class="text-[10px] text-gray-500 mb-1">銃点損失</div>
-                    <div class="text-sm font-bold text-red-600">-{{ Math.round(stats.adjDealInPoints).toLocaleString() }}</div>
-                  </div>
-                  <div class="bg-gray-50 rounded p-1">
-                    <div class="text-[10px] text-gray-500 mb-1 text-center font-bold">調整打点効率</div>
-                    <div class="text-sm font-black text-center" :class="stats.roundBalance >= 0 ? 'text-green-600' : 'text-red-600'">
-                      {{ stats.roundBalance > 0 ? '+' : '' }}{{ Math.round(stats.roundBalance).toLocaleString() }}
-                    </div>
-                  </div>
-                </div>
-                <div class="text-[10px] text-gray-500 mt-2">局収支 (概算): <span class="font-bold">{{ stats.kyokuShushi > 0 ? '+' : '' }}{{ Math.round(stats.kyokuShushi).toLocaleString() }} 点/局</span></div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-              <div class="flex justify-between items-end mb-4 border-b pb-2">
-                <h3 class="font-bold text-gray-800">着順分布</h3>
-                <span class="text-sm font-medium text-gray-500">平均着順: {{ stats.avgRank.toFixed(2) }}</span>
-              </div>
-              <div class="space-y-3">
-                <div v-for="rank in [1,2,3,4]" :key="rank" class="flex items-center space-x-3">
-                  <span class="text-sm font-bold text-gray-700 w-8">{{ rank }}着</span>
-                  <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden flex">
-                    <div class="h-full transition-all duration-500" :class="rank === 1 ? 'bg-yellow-400' : rank === 2 ? 'bg-gray-400' : rank === 3 ? 'bg-orange-400' : 'bg-gray-700'" :style="{ width: stats.ranks[rank].percent + '%' }"></div>
-                  </div>
-                  <div class="w-16 text-right"><span class="text-xs font-bold text-gray-600">{{ stats.ranks[rank].count }}回</span><span class="text-[10px] text-gray-400 ml-1">({{ stats.ranks[rank].percent.toFixed(0) }}%)</span></div>
-                </div>
+              <div class="bg-green-50 p-3 rounded-xl text-center border border-green-100">
+                <div class="text-[10px] font-bold text-green-600 mb-1">実収支 (場代込み)</div>
+                <div class="text-lg font-black text-green-700" :class="{'text-red-600': stats.totalMoney < 0}">{{ stats.totalMoney > 0 ? '+' : '' }}{{ stats.totalMoney.toLocaleString() }}</div>
               </div>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-              <h3 class="font-bold text-gray-800 border-b pb-2 mb-3">対局履歴 (直近10件は編集可)</h3>
-              <div class="space-y-3">
-                <div v-for="(record, index) in filteredHistory.slice(0, 50)" :key="record.id" class="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 relative">
-                  <div v-if="record.type === 'settlement'">
-                    <div class="text-[10px] text-gray-400 flex items-center space-x-2 mb-1">
-                      <span>{{ record.date }}</span>
-                    </div>
-                    <div class="font-medium flex items-center text-sm text-yellow-700">👛 1日の収支精算</div>
+            <div class="grid grid-cols-4 gap-2 mb-4">
+              <div class="bg-gray-50 p-2 rounded-lg text-center"><div class="text-[9px] text-gray-500 font-bold">半荘数</div><div class="font-bold text-gray-800 text-sm">{{ stats.hanchan }}</div></div>
+              <div class="bg-gray-50 p-2 rounded-lg text-center"><div class="text-[9px] text-gray-500 font-bold">平均着順</div><div class="font-bold text-gray-800 text-sm">{{ stats.avgRank.toFixed(2) }}</div></div>
+              <div class="bg-gray-50 p-2 rounded-lg text-center"><div class="text-[9px] text-gray-500 font-bold">トップ率</div><div class="font-bold text-gray-800 text-sm">{{ stats.ranks[1]?.percent.toFixed(1) }}%</div></div>
+              <div class="bg-gray-50 p-2 rounded-lg text-center"><div class="text-[9px] text-gray-500 font-bold">ラス率</div><div class="font-bold text-gray-800 text-sm">{{ stats.ranks[4]?.percent.toFixed(1) }}%</div></div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+            <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase">対局履歴 (直近20件)</h3>
+            <div class="space-y-2">
+              <div v-for="h in filteredHistory.slice(0, 20)" :key="h.id" class="p-3 bg-gray-50 rounded-xl flex justify-between items-center text-sm border border-gray-100">
+                <div>
+                  <div class="font-bold text-gray-800">{{ h.date }} <span class="text-xs text-gray-500 ml-1">{{ h.rule }}</span></div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    <span v-if="h.type==='game'">{{ h.rank }}着 / 素点: {{ h.finalPoint }}</span>
+                    <span v-else>1日精算</span>
                   </div>
-                  <div v-else>
-                    <div class="text-[10px] text-gray-400 flex items-center space-x-2 mb-1">
-                      <span>{{ record.date }}</span>
-                      <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{ record.rule }}</span>
-                    </div>
-                    <div class="font-medium flex items-center">
-                      <span v-if="record.rank" class="inline-block w-6 text-center rounded-sm mr-2 text-xs font-bold" :class="record.rank === 1 ? 'bg-yellow-100 text-yellow-800' : record.rank === 4 ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600'">{{ record.rank }}</span>
-                      <span class="text-sm font-bold" :class="record.scoreBalance >= 0 ? 'text-green-600' : 'text-red-500'">{{ record.scoreBalance > 0 ? '+' : '' }}{{ record.scoreBalance }} pt</span>
-                    </div>
+                </div>
+                <div class="text-right flex items-center gap-2">
+                  <div class="font-black" :class="h.type==='game' ? (h.scoreBalance>=0 ? 'text-blue-600' : 'text-red-500') : (h.moneyBalance>=0 ? 'text-green-600' : 'text-red-500')">
+                    {{ h.type === 'game' ? (h.scoreBalance > 0 ? '+' : '') + h.scoreBalance + 'pt' : (h.moneyBalance > 0 ? '+' : '') + h.moneyBalance + '円' }}
                   </div>
-                  <div class="text-right flex flex-col items-end">
-                    <div v-if="record.type === 'settlement'" class="text-lg font-black" :class="record.moneyBalance >= 0 ? 'text-green-600' : 'text-red-500'">
-                      {{ record.moneyBalance > 0 ? '+' : '' }}{{ record.moneyBalance.toLocaleString() }}円
-                    </div>
-                    <div v-else class="text-[10px] text-gray-500 mb-1">{{ record.totalRounds || '-' }}局 (和{{ record.wins || 0 }} 放{{ record.dealIns || 0 }})</div>
-                    
-                    <div class="flex space-x-2 mt-1" v-if="index < 10">
-                      <button @click="editRecordData(record)" class="text-[10px] px-3 py-1 bg-gray-100 text-gray-600 rounded font-bold">編集</button>
-                      <button @click="deleteRecord(record.id)" class="text-[10px] px-3 py-1 bg-red-50 text-red-600 rounded font-bold">削除</button>
-                    </div>
-                  </div>
+                  <button @click="editRecordData(h)" class="p-1 bg-gray-200 text-gray-600 rounded">編集</button>
                 </div>
               </div>
             </div>
@@ -332,107 +146,75 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 👥 3. セット共有タブ -->
+        <!-- 🤝 3. セット共有タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'group'" class="space-y-4">
-          <div v-if="!currentGroupId" class="bg-white p-6 rounded-2xl shadow-sm text-center border border-gray-100">
-            <div class="text-4xl mb-3">🤝</div>
-            <h3 class="font-bold text-lg mb-2 text-gray-800">セットグループに参加</h3>
-            <p class="text-xs text-gray-500 mb-6 leading-relaxed">仲間と共有している「合言葉（グループID）」を入力するか、新しい合言葉を作って入室してください。</p>
-            <input v-model="groupInput" type="text" placeholder="例: amagasaki-mj-2026" class="border-2 border-orange-200 bg-orange-50 p-3 rounded-xl w-full mb-4 text-center font-bold outline-none text-gray-800 placeholder-orange-300">
-            <button @click="joinGroup" class="bg-orange-500 text-white font-bold py-3 px-4 rounded-xl shadow-sm w-full hover:bg-orange-600 active:bg-orange-700">
-              この合言葉で入室・作成する
-            </button>
+          <!-- セット入室 -->
+          <div v-if="!currentGroupId" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h2 class="text-sm font-bold text-gray-800 mb-2">セット共有に入室</h2>
+            <input v-model="groupInput" type="text" placeholder="例: weekend-mj-2026" class="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 outline-none">
+            <button @click="joinGroup" class="w-full py-3 bg-orange-500 text-white font-bold rounded-xl shadow-sm">入室する</button>
           </div>
-
+          
           <div v-else class="space-y-4">
-            <div class="bg-orange-500 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
-              <div>
-                <p class="text-xs text-orange-200 font-bold mb-1">現在入室中のセット</p>
-                <p class="text-xl font-black tracking-wider">{{ currentGroupId }}</p>
-              </div>
-              <button @click="leaveGroup" class="bg-orange-700 hover:bg-orange-800 px-3 py-1.5 rounded-lg text-xs font-bold">退出する</button>
+            <div class="flex justify-between items-center bg-orange-50 p-3 rounded-xl border border-orange-100">
+              <div class="font-bold text-orange-800 text-sm">セット: {{ currentGroupId }}</div>
+              <button @click="leaveGroup" class="text-xs bg-white text-orange-600 px-3 py-1.5 rounded-lg border border-orange-200 font-bold">退室</button>
             </div>
 
-            <div class="flex bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
-              <button @click="setTab = 'ranking'" :class="setTab === 'ranking' ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-500 font-medium'" class="flex-1 py-3 text-xs transition-colors border-r border-gray-100">ランキング</button>
-              <button @click="setTab = 'input'" :class="setTab === 'input' ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-500 font-medium'" class="flex-1 py-3 text-xs transition-colors border-r border-gray-100">スコア入力</button>
-              <button @click="setTab = 'members'" :class="setTab === 'members' ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-500 font-medium'" class="flex-1 py-3 text-xs transition-colors">メンバー設定</button>
-            </div>
-
-            <div v-show="setTab === 'ranking'" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-gray-800 text-sm">セット内 総合ランキング</h3>
+            <!-- セットメンバー登録 -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase">メンバー登録</h3>
+              <div class="flex space-x-2 mb-3">
+                <input v-model="newMemberName" type="text" placeholder="例: 名前" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm">
+                <button @click="addSetMember" class="px-3 py-2 bg-gray-800 text-white font-bold rounded-lg text-sm">追加</button>
               </div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-xs text-center border-collapse">
-                  <thead>
-                    <tr class="bg-gray-100 text-gray-600">
-                      <th class="p-2 border">順位</th>
-                      <th class="p-2 border">名前</th>
-                      <th class="p-2 border">スコア</th>
-                      <th class="p-2 border">ゲーム数</th>
-                      <th class="p-2 border">平均着順</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(p, idx) in setRankings" :key="p.name" class="border-b">
-                      <td class="p-2 border font-bold">{{ idx + 1 }}位</td>
-                      <td class="p-2 border font-bold text-gray-800">{{ p.name }}</td>
-                      <td class="p-2 border font-bold" :class="p.score >= 0 ? 'text-green-600' : 'text-red-500'">{{ p.score > 0 ? '+' : ''}}{{ p.score.toFixed(1) }}</td>
-                      <td class="p-2 border">{{ p.games }}</td>
-                      <td class="p-2 border">{{ p.avgRank.toFixed(2) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-if="setRankings.length === 0" class="text-center text-gray-400 py-4 text-xs">データがありません。</div>
-            </div>
-
-            <div v-show="setTab === 'input'" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-              <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">4人スコア入力</h3>
-              
-              <div v-for="(player, index) in currentMatch" :key="index" class="mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <div class="flex items-center gap-2">
-                  <select v-model="player.name" class="border border-gray-300 p-2 rounded-lg w-1/3 text-sm font-bold outline-none bg-white">
-                    <option value="">名前選択</option>
-                    <option v-for="m in setMembers" :key="m" :value="m">{{ m }}</option>
-                  </select>
-                  <div class="flex rounded-lg border border-gray-300 overflow-hidden bg-white w-2/3">
-                    <button type="button" @click="player.sign = player.sign * -1" :class="player.sign > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-600'" class="px-3 py-2 font-bold text-sm">{{ player.sign > 0 ? '+' : '−' }}</button>
-                    <input v-model.number="player.score" @input="calculateSetRanks" type="number" inputmode="numeric" placeholder="素点(25000等)" class="w-full px-2 py-2 outline-none text-sm bg-transparent">
-                  </div>
-                  <div class="w-12 text-center font-bold text-sm" :class="{'text-red-500': player.rank === 1}">{{ player.rank || '-' }}位</div>
-                </div>
-              </div>
-
-              <div class="p-3 rounded-xl text-center text-sm font-bold mt-4 border" :class="isSetSumValid ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'">
-                合計: {{ setTotalSum.toLocaleString() }} 点
-                <span v-if="!isSetSumValid" class="block text-[10px] mt-1 text-red-500">※全員の合計が正しくなるように入力してください</span>
-              </div>
-
-              <button @click="saveSetGame" :disabled="!isSetSumValid" class="bg-orange-500 text-white w-full py-3.5 rounded-xl font-bold mt-4 shadow-sm disabled:opacity-50 disabled:bg-gray-400">
-                セット成績を保存する
-              </button>
-            </div>
-
-            <div v-show="setTab === 'members'" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-              <h3 class="font-bold text-gray-800 mb-2 border-b pb-2">セットメンバーの登録</h3>
-              <p class="text-xs text-gray-500 mb-4">このセットグループに参加するメンバーの名前（ニックネーム）を登録してください。</p>
-              
-              <div class="flex space-x-2 mb-4">
-                <input v-model="newMemberName" type="text" placeholder="名前 (例: なっかー)" class="flex-1 border p-2 rounded-lg text-sm outline-none">
-                <button @click="addSetMember" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">追加</button>
-              </div>
-
               <div class="flex flex-wrap gap-2">
-                <span v-for="m in setMembers" :key="m" class="bg-gray-100 text-gray-800 text-sm px-3 py-1.5 rounded-full flex items-center font-bold border border-gray-200">
-                  {{ m }}
-                  <button @click="removeSetMember(m)" class="ml-2 text-gray-400 hover:text-red-500 font-bold">×</button>
+                <span v-for="m in setMembers" :key="m" class="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold flex items-center gap-1">
+                  {{ m }} <button @click="removeSetMember(m)" class="text-gray-400">×</button>
                 </span>
               </div>
             </div>
-            
+
+            <!-- ランキング -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xs font-bold text-gray-400 uppercase">セット内ランキング</h3>
+                <select v-model="setSortType" class="text-xs border border-gray-200 rounded px-2 py-1 outline-none">
+                  <option value="score">スコア順</option>
+                  <option value="rank">平均着順順</option>
+                  <option value="games">打数順</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <div v-for="(p, i) in sortedSetRankings" :key="p.name" @click="showPlayerStats(p)" class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 active:bg-gray-200 transition cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <div class="w-6 text-center font-black text-gray-400" :class="{'text-yellow-500': i===0, 'text-gray-600': i===1, 'text-orange-400': i===2}">{{ i+1 }}</div>
+                    <div class="font-bold text-gray-800">{{ p.name }}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-black text-lg" :class="p.score>=0 ? 'text-blue-600':'text-red-500'">{{ p.score > 0 ? '+' : '' }}{{ p.score.toFixed(1) }}</div>
+                    <div class="text-[10px] text-gray-500 font-bold">{{ p.games }}半荘 / 平均 {{ p.avgRank.toFixed(2) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- スコア入力 (和了放銃なし) -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase">スコア入力 (4人分)</h3>
+              <div v-for="(p, i) in currentMatch" :key="'p'+i" class="flex gap-2 mb-2 items-center">
+                <select v-model="p.name" class="w-1/3 px-2 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50">
+                  <option value="">選択</option>
+                  <option v-for="m in setMembers" :key="m" :value="m">{{ m }}</option>
+                </select>
+                <div class="flex flex-1 rounded-lg border border-gray-200 overflow-hidden bg-white">
+                  <button type="button" @click="p.sign = p.sign * -1" :class="p.sign > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-600'" class="px-2 py-2 font-bold w-10">{{ p.sign > 0 ? '+' : '−' }}</button>
+                  <input v-model.number="p.score" type="number" inputmode="numeric" placeholder="素点" class="w-full px-2 py-2 outline-none text-sm font-bold bg-transparent">
+                </div>
+              </div>
+              <button @click="saveSetGame" class="w-full mt-3 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-sm">セット成績を保存</button>
+            </div>
           </div>
         </div>
 
@@ -440,111 +222,96 @@
         <!-- ⚙️ 4. 設定タブ -->
         <!-- ========================================== -->
         <div v-show="activeTab === 'settings'" class="space-y-4">
-          <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 space-y-6">
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase">ルールの追加・編集</h3>
+            <input v-model="newRuleName" type="text" placeholder="ルール名 (例: 店舗A)" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm font-bold">1ゲームごとの場代 (円)</span>
+              <input v-model.number="newRuleFee" type="number" class="w-24 px-3 py-2 border rounded-lg text-sm text-right">
+            </div>
+            <button @click="addRule" class="w-full py-2 bg-gray-800 text-white font-bold rounded-lg text-sm">ルールを追加</button>
             
-            <div>
-              <h3 class="font-bold text-gray-800 border-b pb-2 mb-4">ルールの追加・管理</h3>
-              <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-4 mb-6">
-                <input v-model="newRuleName" type="text" placeholder="ルールの名前" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none bg-white font-medium text-sm">
-                
-                <div class="bg-white p-3 rounded-lg border border-gray-200 space-y-3">
-                  <label class="flex items-center space-x-2 text-sm font-bold text-gray-700">
-                    <input type="checkbox" v-model="newRuleAutoCalc" class="rounded text-blue-500 w-4 h-4"><span>スコア自動計算を使用</span>
-                  </label>
-                  <div v-if="newRuleAutoCalc" class="space-y-2 pt-2 border-t border-gray-100">
-                    <div class="grid grid-cols-2 gap-2">
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">持ち点</label><input v-model.number="newRuleStart" type="number" class="w-full p-1.5 border rounded text-sm outline-none"></div>
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">返し点</label><input v-model.number="newRuleReturn" type="number" class="w-full p-1.5 border rounded text-sm outline-none"></div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-1">
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">1着ウマ</label><input v-model.number="newRuleUma1" type="number" class="w-full p-1.5 border rounded text-xs outline-none"></div>
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">2着ウマ</label><input v-model.number="newRuleUma2" type="number" class="w-full p-1.5 border rounded text-xs outline-none"></div>
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">3着ウマ</label><input v-model.number="newRuleUma3" type="number" class="w-full p-1.5 border rounded text-xs outline-none"></div>
-                      <div><label class="block text-[10px] font-bold text-gray-500 mb-1">4着ウマ</label><input v-model.number="newRuleUma4" type="number" class="w-full p-1.5 border rounded text-xs outline-none"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="bg-white p-3 rounded-lg border border-gray-200 space-y-3">
-                  <label class="flex items-center space-x-2 text-sm font-bold text-gray-700">
-                    <input type="checkbox" v-model="newRuleUseFee" class="rounded text-blue-500 w-4 h-4"><span>場代を記録</span>
-                  </label>
-                  <div v-if="newRuleUseFee" class="pt-2 border-t border-gray-100">
-                    <div><label class="block text-[10px] font-bold text-gray-500 mb-1">場代/半荘 (円)</label><input v-model.number="newRuleFee" type="number" placeholder="例: 400" class="w-full p-1.5 border rounded text-sm outline-none"></div>
-                  </div>
-                </div>
-                
-                <div class="flex justify-end pt-2">
-                  <button @click="addRule" :disabled="!newRuleName.trim()" class="px-5 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg disabled:bg-gray-300">追加する</button>
-                </div>
-              </div>
-
-              <div class="space-y-3">
-                <div v-for="rule in rules" :key="rule.name" class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <div>
-                    <span class="font-bold text-gray-800">{{ rule.name }}</span>
-                    <div class="text-[10px] text-gray-500 mt-1">
-                      <span v-if="rule.autoCalc" class="mr-2">✓ 自動計算</span><span v-if="rule.fee > 0">✓ 場代({{ rule.fee }}円)</span>
-                    </div>
-                  </div>
-                  <button v-if="rule.name !== 'Mリーグ (10-30)'" @click="deleteRule(rule.name)" class="text-red-500 text-xs font-bold px-3 py-1 bg-white rounded border border-red-200">削除</button>
-                </div>
+            <div class="mt-4 space-y-2">
+              <div v-for="r in rules" :key="r.name" class="flex justify-between p-2 bg-gray-50 rounded-lg text-sm items-center border border-gray-100">
+                <span class="font-bold">{{ r.name }} <span class="text-xs text-gray-500 font-normal">(場代: {{ r.fee }}円)</span></span>
+                <button @click="deleteRule(r.name)" class="text-red-500 text-xs font-bold px-2 py-1 bg-white rounded shadow-sm">削除</button>
               </div>
             </div>
           </div>
         </div>
+
       </main>
 
-      <!-- 👑 モーダル: 1日の精算 -->
-      <div v-if="showSettlement" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-          <h3 class="font-bold text-lg mb-2 text-gray-800">1日の収支を記録</h3>
-          <div class="mb-6">
-            <label class="block text-xs font-medium text-gray-700 mb-1">金額 (円)</label>
-            <div class="flex rounded-lg border border-gray-300 overflow-hidden bg-white">
-              <button type="button" @click="settleSign = settleSign * -1" :class="settleSign > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-600'" class="px-4 py-3 font-bold text-lg">{{ settleSign > 0 ? '+' : '−' }}</button>
-              <input v-model.number="settleMoney" type="number" inputmode="numeric" placeholder="例: 3500" class="w-full px-3 py-3 outline-none text-lg bg-transparent font-bold">
-            </div>
+      <!-- 💰 1日収支・精算モーダル -->
+      <div v-if="showSettlement" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+          <h3 class="font-bold text-gray-800 mb-4 text-center">1日の実収支を記録</h3>
+          <p class="text-xs text-gray-500 mb-4 text-center">本日の場代を含めた、最終的なお財布の増減額を入力してください。</p>
+          <div class="flex rounded-xl border border-gray-300 overflow-hidden bg-gray-50 mb-4">
+            <button type="button" @click="settleSign = settleSign * -1" :class="settleSign > 0 ? 'bg-gray-200 text-gray-700' : 'bg-red-200 text-red-700'" class="px-4 py-3 font-black text-xl w-16">{{ settleSign > 0 ? '+' : '−' }}</button>
+            <input v-model.number="settleMoney" type="number" inputmode="numeric" placeholder="金額 (円)" class="w-full px-3 py-3 outline-none text-xl font-black bg-transparent text-right">
           </div>
-          <div class="flex space-x-3">
-            <button @click="showSettlement = false; settleMoney = ''; settleSign = 1;" class="flex-1 p-3 bg-gray-100 text-gray-700 font-bold rounded-xl">キャンセル</button>
-            <button @click="saveSettlement" class="flex-1 p-3 bg-yellow-500 text-white font-bold rounded-xl">記録する</button>
+          <div class="flex gap-2">
+            <button @click="showSettlement = false" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">キャンセル</button>
+            <button @click="saveSettlement" class="flex-1 py-3 bg-yellow-500 text-white font-bold rounded-xl">記録する</button>
           </div>
         </div>
       </div>
 
-      <!-- 👑 モーダル: 履歴編集 -->
-      <div v-if="editRecord" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl max-h-[90vh] overflow-y-auto">
-          <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">記録の編集 (スコア・着順のみ)</h3>
-          <div class="space-y-3">
-            <div v-if="editRecord.type !== 'settlement'" class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">着順</label>
-                <select v-model.number="editRecord.rank" class="w-full p-2 border rounded-lg text-sm"><option value="1">1着</option><option value="2">2着</option><option value="3">3着</option><option value="4">4着</option></select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">スコア (pt)</label>
-                <input v-model.number="editRecord.scoreBalance" type="number" step="0.1" class="w-full p-2 border rounded-lg text-sm">
-              </div>
+      <!-- 📝 履歴編集モーダル (スコア・着順のみ) -->
+      <div v-if="editRecord" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+          <h3 class="font-bold text-gray-800 mb-4 text-center">成績の編集</h3>
+          <div v-if="editRecord.type === 'game'">
+            <label class="block text-xs font-medium text-gray-700 mb-1">着順</label>
+            <select v-model.number="editRecord.rank" class="w-full px-3 py-2 border rounded-lg mb-3">
+              <option value="1">1着</option><option value="2">2着</option><option value="3">3着</option><option value="4">4着</option>
+            </select>
+            <label class="block text-xs font-medium text-gray-700 mb-1">スコア (pt)</label>
+            <input v-model.number="editRecord.scoreBalance" type="number" class="w-full px-3 py-2 border rounded-lg mb-4">
+          </div>
+          <div v-else>
+            <label class="block text-xs font-medium text-gray-700 mb-1">収支金額 (円)</label>
+            <input v-model.number="editRecord.moneyBalance" type="number" class="w-full px-3 py-2 border rounded-lg mb-4">
+          </div>
+          <div class="flex gap-2">
+            <button @click="editRecord = null" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">キャンセル</button>
+            <button @click="saveEdit" class="flex-1 py-3 bg-blue-500 text-white font-bold rounded-xl">更新</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 👤 個人成績詳細モーダル (セット内) -->
+      <div v-if="selectedPlayerStats" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl relative">
+          <button @click="selectedPlayerStats = null" class="absolute top-3 right-3 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500">×</button>
+          <h3 class="font-black text-lg text-gray-800 mb-1 text-center">{{ selectedPlayerStats.name }} の成績</h3>
+          <p class="text-xs text-gray-500 text-center mb-4">セット: {{ currentGroupId }}</p>
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+              <div class="text-[10px] font-bold text-gray-500 mb-1">累計スコア</div>
+              <div class="text-lg font-black" :class="selectedPlayerStats.score >= 0 ? 'text-blue-600' : 'text-red-500'">{{ selectedPlayerStats.score > 0 ? '+' : '' }}{{ selectedPlayerStats.score.toFixed(1) }}</div>
             </div>
-            <div v-if="editRecord.type === 'settlement'">
-              <label class="block text-xs font-bold text-gray-500 mb-1">精算金額 (円)</label>
-              <input v-model.number="editRecord.moneyBalance" type="number" class="w-full p-2 border rounded-lg text-sm">
+            <div class="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+              <div class="text-[10px] font-bold text-gray-500 mb-1">打数 / 平均着順</div>
+              <div class="text-lg font-black text-gray-700">{{ selectedPlayerStats.games }}<span class="text-sm font-normal mx-1">/</span>{{ selectedPlayerStats.avgRank.toFixed(2) }}</div>
             </div>
           </div>
-          <div class="flex space-x-3 mt-5">
-            <button @click="editRecord = null" class="flex-1 p-3 bg-gray-100 text-gray-700 font-bold rounded-xl">キャンセル</button>
-            <button @click="saveEdit" class="flex-1 p-3 bg-blue-500 text-white font-bold rounded-xl">保存する</button>
+          <div class="flex justify-between px-4 py-2 bg-gray-50 rounded-lg text-sm border border-gray-100">
+            <div class="text-center"><div class="text-xs text-gray-500">1着</div><div class="font-bold">{{ selectedPlayerStats.ranks[1] }}回</div></div>
+            <div class="text-center"><div class="text-xs text-gray-500">2着</div><div class="font-bold">{{ selectedPlayerStats.ranks[2] }}回</div></div>
+            <div class="text-center"><div class="text-xs text-gray-500">3着</div><div class="font-bold">{{ selectedPlayerStats.ranks[3] }}回</div></div>
+            <div class="text-center"><div class="text-xs text-gray-500">4着</div><div class="font-bold">{{ selectedPlayerStats.ranks[4] }}回</div></div>
           </div>
         </div>
       </div>
 
     </div>
   </div>
-  <script type="module">
+   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { createApp, ref, computed, onMounted, watch } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
@@ -566,429 +333,315 @@
       setup() {
         const user = ref(null);
         const activeTab = ref('record');
-        
-        // --- 設定・ルールデータ (① Mリーグのみ残す) ---
+        const defaultMLeague = { name: 'Mリーグルール', autoCalc: true, startPoint: 25000, returnPoint: 30000, uma1: 30, uma2: 10, uma3: -10, uma4: -30, useFee: true, fee: 650 };
         const savedRules = JSON.parse(localStorage.getItem('mahjong_rules') || '[]');
-        const defaultMLeague = { name: 'Mリーグ (10-30)', autoCalc: true, startPoint: 25000, returnPoint: 30000, uma1: 30, uma2: 10, uma3: -10, uma4: -30, useFee: false, fee: 0 };
         const rules = ref(savedRules.length > 0 ? savedRules : [ defaultMLeague ]);
         const selectedRule = ref(rules.value[0].name);
-        const activeRuleObj = computed(() => rules.value.find(r => r.name === selectedRule.value) || rules.value[0]);
-
-        const newRuleName = ref('');
-        const newRuleAutoCalc = ref(true);
-        const newRuleStart = ref(25000); const newRuleReturn = ref(30000);
-        const newRuleUma1 = ref(30); const newRuleUma2 = ref(10); const newRuleUma3 = ref(-10); const newRuleUma4 = ref(-30);
-        const newRuleUseFee = ref(false);
-        const newRuleFee = ref(0);
-
-        watch(rules, (newVal) => { localStorage.setItem('mahjong_rules', JSON.stringify(newVal)); }, { deep: true });
-
-        const addRule = () => {
-          if (!newRuleName.value.trim()) return;
-          rules.value.push({ 
-            name: newRuleName.value.trim(), 
-            autoCalc: newRuleAutoCalc.value, startPoint: newRuleStart.value, returnPoint: newRuleReturn.value,
-            uma1: newRuleUma1.value, uma2: newRuleUma2.value, uma3: newRuleUma3.value, uma4: newRuleUma4.value,
-            useFee: newRuleUseFee.value, fee: newRuleFee.value
-          });
-          newRuleName.value = '';
-        };
-        const deleteRule = (name) => { rules.value = rules.value.filter(r => r.name !== name); };
-
-        // --- 個人入力ロジック ---
-        const totalRounds = ref(0);
-        const riichis = ref(0);
-        const calls = ref(0);
-        const actionLogs = ref([]); 
-        const winLogs = computed(() => actionLogs.value.filter(l => l.type === 'win'));
-        const dealInLogs = computed(() => actionLogs.value.filter(l => l.type === 'dealIn'));
-        const winCount = computed(() => winLogs.value.length);
-        const winPointsTotal = computed(() => winLogs.value.reduce((sum, l) => sum + l.points, 0));
-        const dealInCount = computed(() => dealInLogs.value.length);
-        const dealInPointsTotal = computed(() => dealInLogs.value.reduce((sum, l) => sum + l.points, 0));
-
-        const koPoints = [1000, 1300, 2000, 2600, 3900, 5200, 8000, 12000];
-        const oyaPoints = [1500, 2000, 2900, 3900, 5800, 7700, 12000, 18000];
-        const tempWinPoint = ref('');
-        const tempDealInPoint = ref('');
-
-        const addLog = (type, points) => { actionLogs.value.push({ id: Date.now(), type, points }); };
-        const removeLog = (id) => { actionLogs.value = actionLogs.value.filter(l => l.id !== id); };
-        const addCustomLog = (type) => {
-          if (type === 'win' && tempWinPoint.value) { addLog('win', Number(tempWinPoint.value)); tempWinPoint.value = ''; }
-          else if (type === 'dealIn' && tempDealInPoint.value) { addLog('dealIn', Number(tempDealInPoint.value)); tempDealInPoint.value = ''; }
-        };
 
         const rank = ref(1);
         const tempFinalPoint = ref('');
         const finalPointSign = ref(1);
-
-        // --- メンバー・セットロジック ---
-        const setTab = ref('ranking');
-        const currentMatch = ref([
-          { name: '', sign: 1, score: null, rank: null },
-          { name: '', sign: 1, score: null, rank: null },
-          { name: '', sign: 1, score: null, rank: null },
-          { name: '', sign: 1, score: null, rank: null }
-        ]);
         
-        // ⑥ メンバー事前登録
-        const savedMembers = JSON.parse(localStorage.getItem('mahjong_set_members') || '[]');
-        const setMembers = ref(savedMembers);
-        const newMemberName = ref('');
-        watch(setMembers, (newVal) => { localStorage.setItem('mahjong_set_members', JSON.stringify(newVal)); }, { deep: true });
-        
-        const addSetMember = () => {
-          if(newMemberName.value.trim() && !setMembers.value.includes(newMemberName.value.trim())) {
-            setMembers.value.push(newMemberName.value.trim());
-            newMemberName.value = '';
-          }
-        };
-        const removeSetMember = (name) => {
-          setMembers.value = setMembers.value.filter(m => m !== name);
-        };
+        const totalRounds = ref(0);
+        const riichis = ref(0);
+        const calls = ref(0);
+        const winLogs = ref([]);
+        const dealInLogs = ref([]);
+        const tempWinPoint = ref('');
+        const tempDealInPoint = ref('');
 
-        const calculateSetRanks = () => {
-          const validScores = currentMatch.value.filter(p => p.score !== null).map(p => p.score * p.sign).sort((a,b)=>b-a);
-          currentMatch.value.forEach(p => {
-            if(p.score !== null) p.rank = validScores.indexOf(p.score * p.sign) + 1;
-            else p.rank = null;
-          });
-        };
-        const setTotalSum = computed(() => currentMatch.value.reduce((sum, p) => sum + ((p.score||0)*p.sign), 0));
-        const isSetSumValid = computed(() => currentMatch.value.every(p => p.score !== null) && setTotalSum.value === 100000);
-
-        const saveSetGame = async () => {
-          if(!isSetSumValid.value || !currentGroupId.value) return;
-          try {
-            await addDoc(collection(db, "matches"), {
-              type: 'set_game',
-              userId: user.value.uid,
-              groupId: currentGroupId.value,
-              rule: selectedRule.value,
-              date: new Date().toLocaleDateString('ja-JP'),
-              players: currentMatch.value.map(p => ({
-                name: p.name, score: p.score * p.sign, rank: p.rank
-              })),
-              createdAt: new Date()
-            });
-            alert('セット成績を保存しました！');
-            currentMatch.value.forEach(p => { p.score = null; p.rank = null; });
-            setTab.value = 'ranking';
-          } catch(e) { alert('保存エラー: '+e.message); }
-        };
-
-        const showSettlement = ref(false);
-        const settleMoney = ref('');
-        const settleSign = ref(1);
-
-        const editRecord = ref(null);
-        
-        const myMatches = ref([]);
-        const groupMatches = ref([]);
-        
-        const filterType = ref('private');
+        const history = ref([]);
         const filterRule = ref('全て');
         const filterPeriod = ref('総合');
         
+        const showSettlement = ref(false);
+        const settleMoney = ref('');
+        const settleSign = ref(1);
+        const editRecord = ref(null);
+
         const currentGroupId = ref('');
-        const groupInput = ref('');
+        const groupInput = ref('weekend-mj-2026'); // 一般的なプレースホルダー
+        const savedMembers = JSON.parse(localStorage.getItem('mahjong_set_members') || '[]');
+        const setMembers = ref(savedMembers.length > 0 ? savedMembers : ['名前1', '名前2', '名前3', '名前4']);
+        const newMemberName = ref('');
+        const currentMatch = ref([{name:'', score:'', sign:1}, {name:'', score:'', sign:1}, {name:'', score:'', sign:1}, {name:'', score:'', sign:1}]);
+        const setSortType = ref('score');
+        const setHistory = ref([]);
+        const selectedPlayerStats = ref(null);
+        
+        const newRuleName = ref('');
+        const newRuleFee = ref(650);
 
-        let unsubMyMatches = null;
-        let unsubGroupMatches = null;
+        const koPoints = [1000, 2000, 3900, 8000];
+        const oyaPoints = [1500, 2900, 5800, 12000];
 
-        onMounted(() => {
-          onAuthStateChanged(auth, (currentUser) => {
-            user.value = currentUser;
-            if (currentUser) {
-              const savedGroup = localStorage.getItem('currentGroupId');
-              if (savedGroup) {
-                currentGroupId.value = savedGroup;
-              }
-              fetchHistory();
-            }
-          });
-        });
-
-        watch(currentGroupId, () => { if(user.value) fetchHistory(); });
+        const winCount = computed(() => winLogs.value.length);
+        const dealInCount = computed(() => dealInLogs.value.length);
+        const winPointsTotal = computed(() => winLogs.value.reduce((sum, log) => sum + log.points, 0));
+        const dealInPointsTotal = computed(() => dealInLogs.value.reduce((sum, log) => sum + log.points, 0));
 
         const login = () => signInWithPopup(auth, provider);
         const logout = () => { if(confirm('ログアウトしますか？')) signOut(auth); };
 
-        const joinGroup = () => {
-          if(!groupInput.value.trim()) return;
-          currentGroupId.value = groupInput.value.trim();
-          localStorage.setItem('currentGroupId', currentGroupId.value);
-          alert(`セット [${currentGroupId.value}] に入室しました！`);
+        const addLog = (type, points) => {
+          const log = { id: Date.now(), points };
+          if (type === 'win') winLogs.value.push(log);
+          else dealInLogs.value.push(log);
         };
-        const leaveGroup = () => {
-          currentGroupId.value = '';
-          localStorage.removeItem('currentGroupId');
-          setTab.value = 'ranking';
+        const addCustomLog = (type) => {
+          const pt = type === 'win' ? tempWinPoint.value : tempDealInPoint.value;
+          if (!pt || pt <= 0) return;
+          addLog(type, pt);
+          if (type === 'win') tempWinPoint.value = '';
+          else tempDealInPoint.value = '';
+        };
+        const removeLog = (id) => {
+          winLogs.value = winLogs.value.filter(l => l.id !== id);
+          dealInLogs.value = dealInLogs.value.filter(l => l.id !== id);
         };
 
-        const fetchHistory = () => {
-          if (unsubMyMatches) unsubMyMatches();
-          if (unsubGroupMatches) unsubGroupMatches();
+        const saveGame = async (mode) => {
+          if (!user.value) return;
+          if (tempFinalPoint.value === '') return alert('持ち点を入力してください。');
           
-          const qMe = query(collection(db, "matches"), where("userId", "==", user.value.uid));
-          unsubMyMatches = onSnapshot(qMe, (snapshot) => {
-            myMatches.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          });
-
-          if (currentGroupId.value) {
-            const qGroup = query(collection(db, "matches"), where("groupId", "==", currentGroupId.value));
-            unsubGroupMatches = onSnapshot(qGroup, (snapshot) => {
-              groupMatches.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            });
-          } else {
-            groupMatches.value = [];
-          }
-        };
-
-        const saveGame = async () => {
-          if(totalRounds.value === 0) { alert('局数が0です。'); return; }
+          const rule = rules.value.find(r => r.name === selectedRule.value) || rules.value[0];
+          const rawPoint = finalPointSign.value * tempFinalPoint.value;
+          // 場代をマイナスする（ゲームごとに引く）
+          const gameFee = rule.useFee ? rule.fee : 0;
           
-          const rObj = activeRuleObj.value;
-          const finalPt = tempFinalPoint.value ? parseInt(tempFinalPoint.value) * finalPointSign.value : null;
-          let calcScore = 0;
+          // Mリーグルール等のウマ・オカ計算 (場代はここでは含めず純粋なスコアとして計算)
+          let finalScore = (rawPoint - rule.returnPoint) / 1000;
+          if (rank.value === 1) finalScore += rule.uma1 + ((rule.returnPoint - rule.startPoint) * 4 / 1000);
+          else if (rank.value === 2) finalScore += rule.uma2;
+          else if (rank.value === 3) finalScore += rule.uma3;
+          else if (rank.value === 4) finalScore += rule.uma4;
 
-          if (rObj.autoCalc && finalPt !== null) {
-            const oka = (rObj.returnPoint - rObj.startPoint) * 4 / 1000;
-            let rankPt = 0;
-            if(rank.value===1) rankPt = rObj.uma1 + oka;
-            if(rank.value===2) rankPt = rObj.uma2;
-            if(rank.value===3) rankPt = rObj.uma3;
-            if(rank.value===4) rankPt = rObj.uma4;
-            const rawPt = (finalPt - rObj.returnPoint) / 1000;
-            calcScore = parseFloat((rawPt + rankPt).toFixed(1));
-          }
+          const gameData = {
+            type: 'game',
+            userId: user.value.uid,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: Date.now(),
+            rule: selectedRule.value,
+            rank: rank.value,
+            finalPoint: rawPoint,
+            scoreBalance: finalScore,
+            fee: gameFee,
+            totalRounds: totalRounds.value,
+            riichis: riichis.value,
+            calls: calls.value,
+            wins: winCount.value,
+            dealIns: dealInCount.value,
+            winPoints: winPointsTotal.value,
+            dealInPoints: dealInPointsTotal.value
+          };
 
           try {
-            await addDoc(collection(db, "matches"), {
-              type: 'game',
-              userId: user.value.uid,
-              groupId: '', // 個人のみ
-              rule: selectedRule.value,
-              date: new Date().toLocaleDateString('ja-JP'),
-              totalRounds: totalRounds.value, calls: calls.value, riichis: riichis.value,
-              wins: winCount.value, winPointsTotal: winPointsTotal.value, winDetails: winLogs.value.map(l => l.points),
-              dealIns: dealInCount.value, dealInPointsTotal: dealInPointsTotal.value, dealInDetails: dealInLogs.value.map(l => l.points),
-              rank: rank.value, 
-              finalPoint: finalPt,
-              scoreBalance: calcScore,
-              feePaid: rObj.fee || 0,
-              createdAt: new Date()
-            });
+            await addDoc(collection(db, "games"), gameData);
             alert('成績を保存しました！');
-            totalRounds.value = 0; riichis.value = 0; calls.value = 0; actionLogs.value = [];
-            tempFinalPoint.value = ''; rank.value = 1;
-            activeTab.value = 'stats'; filterType.value = 'private';
-          } catch (error) { alert('保存エラー: ' + error.message); }
+            rank.value = 1; tempFinalPoint.value = ''; finalPointSign.value = 1;
+            totalRounds.value = 0; riichis.value = 0; calls.value = 0;
+            winLogs.value = []; dealInLogs.value = [];
+          } catch (e) {
+            console.error(e); alert('エラーが発生しました。');
+          }
         };
 
         const saveSettlement = async () => {
-          if(!settleMoney.value) return;
+          if (!user.value || settleMoney.value === '') return;
+          const data = {
+            type: 'settlement',
+            userId: user.value.uid,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: Date.now(),
+            moneyBalance: settleSign.value * settleMoney.value
+          };
           try {
-            await addDoc(collection(db, "matches"), {
-              type: 'settlement',
-              userId: user.value.uid,
-              groupId: '',
-              rule: selectedRule.value,
-              date: new Date().toLocaleDateString('ja-JP'),
-              moneyBalance: parseInt(settleMoney.value) * settleSign.value,
-              createdAt: new Date()
-            });
-            showSettlement.value = false; settleMoney.value = ''; settleSign.value = 1;
-            alert('精算を記録しました');
-          } catch (error) { alert('エラー: ' + error.message); }
+            await addDoc(collection(db, "games"), data);
+            alert('1日の収支を記録しました！');
+            showSettlement.value = false;
+            settleMoney.value = '';
+          } catch (e) { console.error(e); }
+        };
+        const editRecordData = (record) => {
+          // 直近20件の履歴から編集可能
+          editRecord.value = { ...record };
         };
 
-        const deleteRecord = async (id) => { if(confirm('この記録を削除しますか？')) await deleteDoc(doc(db, "matches", id)); };
-        const editRecordData = (record) => { editRecord.value = JSON.parse(JSON.stringify(record)); };
         const saveEdit = async () => {
+          if (!editRecord.value) return;
           try {
-            const dataToUpdate = {};
-            if (editRecord.value.type === 'settlement') {
-              dataToUpdate.moneyBalance = editRecord.value.moneyBalance || 0;
+            const docRef = doc(db, "games", editRecord.value.id);
+            if (editRecord.value.type === 'game') {
+              await updateDoc(docRef, {
+                rank: editRecord.value.rank,
+                scoreBalance: editRecord.value.scoreBalance
+              });
             } else {
-              dataToUpdate.rank = editRecord.value.rank;
-              dataToUpdate.scoreBalance = editRecord.value.scoreBalance || 0;
-            }
-            await updateDoc(doc(db, "matches", editRecord.value.id), dataToUpdate);
-            editRecord.value = null;
-          } catch(error) { alert('更新エラー: ' + error.message); }
-        };
-
-        const combinedHistory = computed(() => {
-          const combined = [...myMatches.value];
-          const myIds = new Set(combined.map(m => m.id));
-          groupMatches.value.forEach(m => { if (!myIds.has(m.id)) combined.push(m); });
-          return combined.sort((a, b) => {
-            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-            return timeB - timeA;
-          });
-        });
-
-        // ⑥ セット内ランキングの計算 (画像参照)
-        const setRankings = computed(() => {
-          if(!currentGroupId.value) return [];
-          const games = groupMatches.value.filter(m => m.type === 'set_game' && m.groupId === currentGroupId.value);
-          const pData = {};
-          
-          games.forEach(g => {
-            if(g.players) {
-              g.players.forEach(p => {
-                if(!p.name) return;
-                if(!pData[p.name]) pData[p.name] = { name: p.name, score: 0, games: 0, rankSum: 0 };
-                // 簡略化：pt計算（画像のように順位pt＋素点計算が必要ですが、ここではスコアをそのまま集計）
-                const pt = (p.score - 30000)/1000; // 例: 3万点返し
-                let rankPt = 0;
-                if(p.rank===1) rankPt = 50; if(p.rank===2) rankPt = 10; if(p.rank===3) rankPt = -10; if(p.rank===4) rankPt = -30;
-                pData[p.name].score += (pt + rankPt);
-                pData[p.name].games += 1;
-                pData[p.name].rankSum += p.rank;
+              await updateDoc(docRef, {
+                moneyBalance: editRecord.value.moneyBalance
               });
             }
-          });
-          
-          return Object.values(pData).map(p => ({
-            name: p.name,
-            score: p.score,
-            games: p.games,
-            avgRank: p.games > 0 ? p.rankSum / p.games : 0
-          })).sort((a,b) => b.score - a.score);
-        });
+            alert('データを更新しました！');
+            editRecord.value = null;
+          } catch (e) { console.error(e); }
+        };
+
+        const addRule = () => {
+          if (!newRuleName.value) return;
+          rules.value.push({ name: newRuleName.value, autoCalc: false, useFee: true, fee: newRuleFee.value || 0 });
+          localStorage.setItem('mahjong_rules', JSON.stringify(rules.value));
+          newRuleName.value = '';
+          newRuleFee.value = 650;
+        };
+        
+        const deleteRule = (name) => {
+          if(rules.value.length <= 1) return alert('ルールは最低1つ必要です。');
+          rules.value = rules.value.filter(r => r.name !== name);
+          localStorage.setItem('mahjong_rules', JSON.stringify(rules.value));
+          if(selectedRule.value === name) selectedRule.value = rules.value[0].name;
+        };
+
+        const joinGroup = () => { if(groupInput.value) currentGroupId.value = groupInput.value; };
+        const leaveGroup = () => { currentGroupId.value = ''; };
+        
+        const addSetMember = () => {
+          if(newMemberName.value && !setMembers.value.includes(newMemberName.value)){
+            setMembers.value.push(newMemberName.value);
+            localStorage.setItem('mahjong_set_members', JSON.stringify(setMembers.value));
+            newMemberName.value = '';
+          }
+        };
+        
+        const removeSetMember = (name) => {
+          setMembers.value = setMembers.value.filter(m => m !== name);
+          localStorage.setItem('mahjong_set_members', JSON.stringify(setMembers.value));
+        };
+
+        const saveSetGame = async () => {
+          const validPlayers = currentMatch.value.filter(p => p.name && p.score !== '');
+          if (validPlayers.length !== 4) return alert('4人分のスコアを入力してください。');
+          const sum = validPlayers.reduce((acc, p) => acc + (p.sign * p.score), 0);
+          if (sum !== 0) return alert('スコアの合計が0になっていません。');
+
+          const gameData = {
+            groupId: currentGroupId.value,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: Date.now(),
+            players: validPlayers.map(p => ({ name: p.name, score: p.sign * p.score }))
+          };
+          try {
+            await addDoc(collection(db, "set_games"), gameData);
+            alert('セット成績を保存しました！');
+            currentMatch.value.forEach(p => { p.score = ''; p.sign = 1; });
+          } catch(e) { console.error(e); }
+        };
+
+        const showPlayerStats = (player) => { selectedPlayerStats.value = player; };
 
         const availablePeriods = computed(() => {
-          const pMap = new Set(['総合']);
-          combinedHistory.value.forEach(h => {
-            if (!h.date) return;
-            const parts = h.date.split('/');
-            if(parts.length===3) { pMap.add(`${parts[0]}年`); pMap.add(`${parts[0]}年${parseInt(parts[1])}月`); }
-          });
-          return Array.from(pMap).sort().reverse();
+          const months = new Set(history.value.map(h => h.date.substring(0,7)));
+          return Array.from(months).sort().reverse();
         });
 
         const filteredHistory = computed(() => {
-          return combinedHistory.value.filter(h => {
-            if (filterType.value === 'private' && h.groupId !== '') return false;
-            if (filterType.value === 'all') {} // 全部表示
-            if (filterRule.value !== '全て' && h.rule !== filterRule.value) return false;
-            if (filterPeriod.value !== '総合') {
-              if(!h.date) return false;
-              const parts = h.date.split('/');
-              const y = `${parts[0]}年`, ym = `${parts[0]}年${parseInt(parts[1])}月`;
-              if (filterPeriod.value !== y && filterPeriod.value !== ym) return false;
-            }
+          return history.value.filter(h => {
+            if(filterRule.value !== '全て' && h.type === 'game' && h.rule !== filterRule.value) return false;
+            if(filterPeriod.value !== '総合' && !h.date.startsWith(filterPeriod.value)) return false;
             return true;
-          });
+          }).sort((a,b) => b.timestamp - a.timestamp);
         });
 
         const stats = computed(() => {
-          const data = filteredHistory.value;
-          let hanchan = 0, rounds = 0, wins = 0, dealIns = 0, c = 0, r = 0;
-          let wTotal = 0, dTotal = 0, score = 0, rankSum = 0;
-          let pureMoney = 0, totalMoney = 0;
-          let ranks = { 1: {count:0}, 2: {count:0}, 3: {count:0}, 4: {count:0} };
-          let finalPtsSum = 0, kyokuHasFinalPts = 0;
-
-          data.forEach(h => {
-            if(h.type === 'settlement') {
-              totalMoney += h.moneyBalance || 0;
-              return;
-            }
-            if(h.type === 'game') {
+          let pureMoney = 0; 
+          let totalMoney = 0; 
+          let hanchan = 0;
+          let rankCounts = {1:0, 2:0, 3:0, 4:0};
+          let rankSum = 0;
+          
+          filteredHistory.value.forEach(h => {
+            if (h.type === 'game') {
               hanchan++;
-              rounds += h.totalRounds || 0; wins += h.wins || 0; dealIns += h.dealIns || 0;
-              c += h.calls || 0; r += h.riichis || 0;
-              wTotal += h.winPointsTotal || 0; dTotal += h.dealInPointsTotal || 0;
-              score += h.scoreBalance || 0;
-              if(h.rank && ranks[h.rank]) ranks[h.rank].count++;
-              rankSum += h.rank || 1;
-              
-              if(h.finalPoint != null) {
-                finalPtsSum += (h.finalPoint - 25000); 
-                kyokuHasFinalPts += (h.totalRounds || 0);
-              }
-
-              // ③ 場代抜き収支と場代あり収支の計算
-              // 簡易的にスコア(pt) × 50円（レート例）を純収支とする
-              const matchPureMoney = (h.scoreBalance || 0) * 50; 
-              pureMoney += matchPureMoney;
-              totalMoney += (matchPureMoney - (h.feePaid || 0));
+              rankCounts[h.rank] = (rankCounts[h.rank] || 0) + 1;
+              rankSum += h.rank;
+            } else if (h.type === 'settlement') {
+              totalMoney += h.moneyBalance;
             }
           });
+          
+          // 実収支は1日の精算(settlement)の合計。
+          // 場代抜き純収支は、実収支 ＋ (引かれた場代の合計) で算出
+          const totalFees = filteredHistory.value.filter(h => h.type === 'game').reduce((acc, h) => acc + (h.fee || 0), 0);
+          pureMoney = totalMoney + totalFees;
 
-          const safe = (n, d) => d > 0 ? (n / d) : 0;
-          [1,2,3,4].forEach(n => { ranks[n].percent = safe(ranks[n].count, hanchan) * 100; });
-
-          const winRate = safe(wins, rounds) * 100;
-          const dealInRate = safe(dealIns, rounds) * 100;
           return {
-            hanchan, rounds, winRate, dealInRate,
-            callRate: safe(c, rounds) * 100, riichiRate: safe(r, rounds) * 100,
-            avgWinPoints: safe(wTotal, wins), avgDealInPoints: safe(dTotal, dealIns),
-            adjWinPoints: safe(wTotal, rounds), adjDealInPoints: safe(dTotal, rounds), roundBalance: safe(wTotal, rounds) - safe(dTotal, rounds),
-            score, pureMoney, totalMoney, avgRank: safe(rankSum, hanchan), ranks,
-            kyokuShushi: safe(finalPtsSum, kyokuHasFinalPts)
+            pureMoney, totalMoney, hanchan,
+            avgRank: hanchan > 0 ? rankSum / hanchan : 0,
+            ranks: {
+              1: { percent: hanchan > 0 ? (rankCounts[1]/hanchan)*100 : 0 },
+              4: { percent: hanchan > 0 ? (rankCounts[4]/hanchan)*100 : 0 }
+            }
           };
         });
 
-        // ③ グラフ用データ
-        const dbStats = computed(() => {
-          const revData = [...filteredHistory.value].reverse();
-          let cScore = 0, cMoney = 0;
-          const cDataScore = [{ i: 0, val: 0 }], cDataMoney = [{ i: 0, val: 0 }];
-          let sIdx = 1, mIdx = 1;
-
-          revData.forEach(h => {
-            if(h.type === 'game') {
-              cScore += h.scoreBalance || 0;
-              cDataScore.push({ i: sIdx++, val: cScore });
-              cMoney += ((h.scoreBalance || 0) * 50) - (h.feePaid || 0);
-              cDataMoney.push({ i: mIdx++, val: cMoney });
-            } else if (h.type === 'settlement') {
-              cMoney += h.moneyBalance || 0;
-              cDataMoney.push({ i: mIdx++, val: cMoney });
-            }
+        const sortedSetRankings = computed(() => {
+          const pStats = {};
+          setHistory.value.forEach(g => {
+            const sortedPlayers = [...g.players].sort((a,b) => b.score - a.score);
+            sortedPlayers.forEach((p, idx) => {
+              if(!pStats[p.name]) pStats[p.name] = { name: p.name, score: 0, games: 0, rankSum: 0, ranks: {1:0,2:0,3:0,4:0} };
+              pStats[p.name].score += p.score;
+              pStats[p.name].games++;
+              pStats[p.name].rankSum += (idx + 1);
+              pStats[p.name].ranks[idx + 1]++;
+            });
           });
-          return { chartDataScore: cDataScore, chartDataMoney: cDataMoney };
+          
+          const arr = Object.values(pStats).map(p => ({
+            ...p,
+            avgRank: p.games > 0 ? p.rankSum / p.games : 0
+          }));
+
+          return arr.sort((a,b) => {
+            if(setSortType.value === 'score') return b.score - a.score;
+            if(setSortType.value === 'rank') return a.avgRank - b.avgRank;
+            if(setSortType.value === 'games') return b.games - a.games;
+            return 0;
+          });
         });
 
-        const chartType = ref('score');
-        const getChartZeroY = () => {
-          const cData = chartType.value === 'score' ? dbStats.value.chartDataScore : dbStats.value.chartDataMoney;
-          const vals = cData.map(d=>d.val);
-          const min = Math.min(0, ...vals), max = Math.max(0, ...vals);
-          const range = max - min === 0 ? 100 : max - min;
-          return 5 + 90 - ((0 - min) / range) * 90;
-        };
-        const getChartPoints = () => {
-          const cData = chartType.value === 'score' ? dbStats.value.chartDataScore : dbStats.value.chartDataMoney;
-          const vals = cData.map(d=>d.val);
-          const min = Math.min(0, ...vals), max = Math.max(0, ...vals);
-          const range = max - min === 0 ? 100 : max - min;
-          return cData.map((d, idx) => {
-            const x = 5 + (idx / Math.max(1, cData.length - 1)) * 290;
-            const y = 5 + 90 - ((d.val - min) / range) * 90;
-            return `${x},${y}`;
-          }).join(' ');
-        };
+        watch(user, (newVal) => {
+          if (newVal) {
+            const q = query(collection(db, "games"), where("userId", "==", newVal.uid));
+            onSnapshot(q, (snap) => {
+              history.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+          }
+        });
+        
+        watch(currentGroupId, (newVal) => {
+          if (newVal) {
+            const q = query(collection(db, "set_games"), where("groupId", "==", newVal));
+            onSnapshot(q, (snap) => {
+              setHistory.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+          }
+        });
 
         return { 
-          user, login, logout, activeTab, rules, selectedRule, activeRuleObj,
-          newRuleName, newRuleAutoCalc, newRuleStart, newRuleReturn, newRuleUma1, newRuleUma2, newRuleUma3, newRuleUma4, newRuleUseFee, newRuleFee, addRule, deleteRule,
-          totalRounds, riichis, calls, koPoints, oyaPoints, actionLogs, winLogs, dealInLogs, winCount, dealInCount, winPointsTotal, dealInPointsTotal,
-          tempWinPoint, tempDealInPoint, addLog, removeLog, addCustomLog, 
+          user, login, logout, activeTab, rules, selectedRule,
           rank, tempFinalPoint, finalPointSign,
-          setTab, currentMatch, setMembers, newMemberName, addSetMember, removeSetMember, calculateSetRanks, setTotalSum, isSetSumValid, saveSetGame, setRankings,
-          showSettlement, settleMoney, settleSign, saveSettlement,
+          totalRounds, riichis, calls, winLogs, dealInLogs,
+          tempWinPoint, tempDealInPoint, addLog, addCustomLog, removeLog,
+          koPoints, oyaPoints, winCount, dealInCount, winPointsTotal, dealInPointsTotal,
+          saveGame, saveSettlement,
+          showSettlement, settleMoney, settleSign,
+          history, filteredHistory, stats, filterRule, filterPeriod, availablePeriods,
           editRecord, editRecordData, saveEdit,
           currentGroupId, groupInput, joinGroup, leaveGroup,
-          saveGame, deleteRecord, filterType, filterRule, filterPeriod, availablePeriods, filteredHistory, stats,
-          dbStats, chartType, getChartZeroY, getChartPoints
+          setMembers, newMemberName, addSetMember, removeSetMember,
+          currentMatch, saveSetGame,
+          setSortType, sortedSetRankings, showPlayerStats, selectedPlayerStats,
+          newRuleName, newRuleFee, addRule, deleteRule
         };
       }
     }).mount('#app');
