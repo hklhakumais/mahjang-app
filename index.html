@@ -45,7 +45,9 @@
 
       <main class="max-w-md mx-auto p-4 space-y-4 pb-24">
         
+        <!-- ========================================== -->
         <!-- 📝 1. フリー（個人の詳細）入力タブ -->
+        <!-- ========================================== -->
         <div v-show="activeTab === 'record'" class="space-y-4">
           <div class="bg-white rounded-2xl shadow-sm p-5 space-y-6 border border-gray-100">
             <div>
@@ -54,7 +56,79 @@
                 <option v-for="rule in rules" :key="rule.name" :value="rule.name">{{ rule.name }}</option>
               </select>
             </div>
-            <div class="pt-2 border-t border-gray-100">
+
+            <!-- 進行状況トラッキング -->
+            <div class="border-t border-gray-100 pt-4">
+              <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">進行状況 (タップで+1)</h2>
+              <div class="grid grid-cols-3 gap-3">
+                <div @click="totalRounds++" class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100 active:bg-gray-200 select-none">
+                  <div class="text-[10px] text-gray-500 font-bold mb-1">局数</div>
+                  <div class="flex items-center justify-between"><button @click.stop="totalRounds > 0 && totalRounds--" class="w-6 h-6 bg-white rounded shadow-sm text-gray-400 font-bold">-</button><span class="text-xl font-black text-gray-700">{{ totalRounds }}</span><div class="w-6"></div></div>
+                </div>
+                <div @click="riichis++" class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100 active:bg-gray-200 select-none">
+                  <div class="text-[10px] text-gray-500 font-bold mb-1">リーチ</div>
+                  <div class="flex items-center justify-between"><button @click.stop="riichis > 0 && riichis--" class="w-6 h-6 bg-white rounded shadow-sm text-gray-400 font-bold">-</button><span class="text-xl font-black text-blue-600">{{ riichis }}</span><div class="w-6"></div></div>
+                </div>
+                <div @click="calls++" class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100 active:bg-gray-200 select-none">
+                  <div class="text-[10px] text-gray-500 font-bold mb-1">副露</div>
+                  <div class="flex items-center justify-between"><button @click.stop="calls > 0 && calls--" class="w-6 h-6 bg-white rounded shadow-sm text-gray-400 font-bold">-</button><span class="text-xl font-black text-orange-500">{{ calls }}</span><div class="w-6"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 和了・放銃の記録 -->
+            <div class="border-t border-gray-100 pt-4 space-y-4">
+              <div>
+                <div class="flex justify-between items-end mb-2">
+                  <h3 class="text-xs font-bold text-red-500 uppercase">和了 (アガリ)</h3>
+                  <div class="text-sm font-bold text-gray-600">計 {{ winCount }}回 / {{ winPointsTotal }}点</div>
+                </div>
+                <div class="flex gap-2 mb-2">
+                  <div class="flex-1 grid grid-cols-2 gap-1">
+                    <button v-for="pt in koPoints" :key="'ko'+pt" @click="addLog('win', pt)" class="text-[10px] bg-red-50 text-red-600 py-1.5 rounded border border-red-100 font-bold">子{{ pt }}</button>
+                  </div>
+                  <div class="flex-1 grid grid-cols-2 gap-1">
+                    <button v-for="pt in oyaPoints" :key="'oya'+pt" @click="addLog('win', pt)" class="text-[10px] bg-red-100 text-red-700 py-1.5 rounded border border-red-200 font-bold">親{{ pt }}</button>
+                  </div>
+                </div>
+                <div class="flex gap-2 mb-2">
+                  <input v-model.number="tempWinPoint" type="number" placeholder="その他の点数" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none">
+                  <button @click="addCustomLog('win')" class="px-4 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg shadow-sm">追加</button>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                  <span v-for="log in winLogs" :key="log.id" class="inline-flex items-center bg-white border border-red-200 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                    {{ log.points }}点 <button @click="removeLog('win', log.id)" class="ml-1 text-red-300 w-3 h-3 flex items-center justify-center rounded-full hover:bg-red-100">×</button>
+                  </span>
+                </div>
+              </div>
+              
+              <div>
+                <div class="flex justify-between items-end mb-2">
+                  <h3 class="text-xs font-bold text-blue-500 uppercase">放銃 (振り込み)</h3>
+                  <div class="text-sm font-bold text-gray-600">計 {{ dealInCount }}回 / {{ dealInPointsTotal }}点</div>
+                </div>
+                <div class="flex gap-2 mb-2">
+                  <div class="flex-1 grid grid-cols-2 gap-1">
+                    <button v-for="pt in koPoints" :key="'dk'+pt" @click="addLog('dealIn', pt)" class="text-[10px] bg-blue-50 text-blue-600 py-1.5 rounded border border-blue-100 font-bold">子{{ pt }}</button>
+                  </div>
+                  <div class="flex-1 grid grid-cols-2 gap-1">
+                    <button v-for="pt in oyaPoints" :key="'do'+pt" @click="addLog('dealIn', pt)" class="text-[10px] bg-blue-100 text-blue-700 py-1.5 rounded border border-blue-200 font-bold">親{{ pt }}</button>
+                  </div>
+                </div>
+                <div class="flex gap-2 mb-2">
+                  <input v-model.number="tempDealInPoint" type="number" placeholder="その他の点数" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none">
+                  <button @click="addCustomLog('dealIn')" class="px-4 py-1.5 bg-blue-500 text-white text-sm font-bold rounded-lg shadow-sm">追加</button>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                  <span v-for="log in dealInLogs" :key="log.id" class="inline-flex items-center bg-white border border-blue-200 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                    {{ log.points }}点 <button @click="removeLog('dealIn', log.id)" class="ml-1 text-blue-300 w-3 h-3 flex items-center justify-center rounded-full hover:bg-blue-100">×</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 半荘終了時の入力 -->
+            <div class="pt-4 border-t border-gray-100">
               <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">半荘終了時の入力</h2>
               <div class="grid grid-cols-2 gap-3 mb-4">
                 <div>
@@ -76,12 +150,15 @@
               </button>
             </div>
           </div>
+          
           <button @click="showSettlement = true" class="w-full bg-white rounded-2xl shadow-sm p-4 border border-yellow-200 flex items-center justify-center space-x-2 text-yellow-700 font-bold">
             <span class="text-xl">👛</span><span>1日の実収支をまとめて記録</span>
           </button>
         </div>
 
+        <!-- ========================================== -->
         <!-- 📊 2. 成績分析タブ -->
+        <!-- ========================================== -->
         <div v-show="activeTab === 'stats'" class="space-y-4">
           <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
             <div class="flex space-x-2 mb-4">
@@ -136,7 +213,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- 🤝 3. セット共有タブ -->
+        <!-- ========================================== -->
         <div v-show="activeTab === 'group'" class="space-y-4">
           <div v-if="!currentGroupId" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h2 class="text-sm font-bold text-gray-800 mb-2">セット共有に入室</h2>
@@ -217,7 +296,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- ⚙️ 4. 設定タブ -->
+        <!-- ========================================== -->
         <div v-show="activeTab === 'settings'" class="space-y-4">
           <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase">ルールの追加・編集</h3>
@@ -306,7 +387,6 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    // 💡 ポップアップブロックを回避するため signInWithRedirect に変更
     import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { createApp, ref, computed, onMounted, watch } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
@@ -337,6 +417,17 @@
         const tempFinalPoint = ref('');
         const finalPointSign = ref(1);
         
+        // --- 進行状況・和了放銃トラッキング用 ---
+        const totalRounds = ref(0);
+        const riichis = ref(0);
+        const calls = ref(0);
+        const winLogs = ref([]);
+        const dealInLogs = ref([]);
+        const tempWinPoint = ref('');
+        const tempDealInPoint = ref('');
+        const koPoints = [1000, 2000, 3900, 8000];
+        const oyaPoints = [1500, 2900, 5800, 12000];
+        
         const history = ref([]);
         const filterRule = ref('全て');
         const filterPeriod = ref('総合');
@@ -366,6 +457,26 @@
         const login = () => signInWithRedirect(auth, provider).catch(e => alert("ログインエラー: " + e.message));
         const logout = () => { if(confirm('ログアウトしますか？')) signOut(auth); };
 
+        const winCount = computed(() => winLogs.value.length);
+        const dealInCount = computed(() => dealInLogs.value.length);
+        const winPointsTotal = computed(() => winLogs.value.reduce((sum, log) => sum + log.points, 0));
+        const dealInPointsTotal = computed(() => dealInLogs.value.reduce((sum, log) => sum + log.points, 0));
+
+        const addLog = (type, points) => {
+          const log = { id: Date.now(), points };
+          if (type === 'win') winLogs.value.push(log); else dealInLogs.value.push(log);
+        };
+        const addCustomLog = (type) => {
+          const pt = type === 'win' ? tempWinPoint.value : tempDealInPoint.value;
+          if (!pt || pt <= 0) return;
+          addLog(type, pt);
+          if (type === 'win') tempWinPoint.value = ''; else tempDealInPoint.value = '';
+        };
+        const removeLog = (type, id) => {
+          if (type === 'win') winLogs.value = winLogs.value.filter(l => l.id !== id);
+          else dealInLogs.value = dealInLogs.value.filter(l => l.id !== id);
+        };
+
         const saveGame = async () => {
           if (!user.value) return;
           if (tempFinalPoint.value === '') return alert('持ち点を入力してください。');
@@ -384,12 +495,17 @@
             date: new Date().toISOString().split('T')[0],
             timestamp: Date.now(),
             rule: selectedRule.value, rank: rank.value,
-            finalPoint: rawPoint, scoreBalance: finalScore, fee: gameFee
+            finalPoint: rawPoint, scoreBalance: finalScore, fee: gameFee,
+            totalRounds: totalRounds.value, riichis: riichis.value, calls: calls.value,
+            wins: winCount.value, dealIns: dealInCount.value,
+            winPoints: winPointsTotal.value, dealInPoints: dealInPointsTotal.value
           };
           try {
             await addDoc(collection(db, "games"), gameData);
             alert('成績を保存しました！');
             rank.value = 1; tempFinalPoint.value = ''; finalPointSign.value = 1;
+            totalRounds.value = 0; riichis.value = 0; calls.value = 0;
+            winLogs.value = []; dealInLogs.value = [];
           } catch (e) { alert('エラーが発生しました。'); }
         };
 
@@ -533,7 +649,8 @@
           showSettlement, settleMoney, settleSign, history, filteredHistory, stats, filterRule, filterPeriod, availablePeriods,
           editRecord, editRecordData, saveEdit, currentGroupId, groupInput, joinGroup, leaveGroup,
           setMembers, newMemberName, addSetMember, removeSetMember, currentMatch, saveSetGame, deleteSetGame,
-          setSortType, sortedSetRankings, showPlayerStats, selectedPlayerStats, newRuleName, newRuleFee, addRule, deleteRule, setHistory
+          setSortType, sortedSetRankings, showPlayerStats, selectedPlayerStats, newRuleName, newRuleFee, addRule, deleteRule, setHistory,
+          totalRounds, riichis, calls, winLogs, dealInLogs, tempWinPoint, tempDealInPoint, addLog, addCustomLog, removeLog, koPoints, oyaPoints, winCount, dealInCount, winPointsTotal, dealInPointsTotal
         };
       }
     }).mount('#app');
